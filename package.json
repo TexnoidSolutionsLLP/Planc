@@ -1,0 +1,26 @@
+{
+  "name": "sellly",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sellly — turn your social audience into a store. Multi-tenant social-commerce SaaS.",
+  "scripts": {
+    "dev:web": "pnpm --filter @sellly/web dev",
+    "dev:storefront": "pnpm --filter @sellly/storefront dev",
+    "dev:admin": "pnpm --filter @sellly/admin dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "db:generate": "pnpm --filter @sellly/database generate",
+    "db:migrate": "pnpm --filter @sellly/database migrate",
+    "db:seed": "pnpm --filter @sellly/database seed",
+    "db:studio": "pnpm --filter @sellly/database studio"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "devDependencies": {
+    "vitest": "^2.1.1"
+  }
+}

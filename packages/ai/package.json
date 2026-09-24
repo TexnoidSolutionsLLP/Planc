@@ -1,0 +1,11 @@
+{
+  "name": "@sellly/ai",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "typescript": "^5.6.0"
+  }
+}
