@@ -1,4 +1,4 @@
-# Sellly
+# SMBPROJECT
 
 Turn your social audience into a store. A multi-tenant social-commerce SaaS for Instagram sellers, creators, boutiques, resellers and small D2C brands.
 
