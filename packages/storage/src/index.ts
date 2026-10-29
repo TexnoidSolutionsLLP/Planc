@@ -1,40 +1,51 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 
 /**
- * Cloudflare R2 speaks the S3 API, so the same client works for R2 or real
- * S3 by swapping `STORAGE_ENDPOINT` — nothing else in the app depends on
- * which one is configured.
+ * Product and collection images live in a public Supabase Storage bucket.
+ * Uploads go straight from the merchant's browser to Supabase through a
+ * short-lived signed upload URL, so files never pass through our server and
+ * a store can only ever write under its own `stores/<storeId>/` prefix.
+ *
+ * This module is server-only: it uses the service-role key, which must never
+ * reach browser code.
  */
-function getClient() {
-  const endpoint = process.env.STORAGE_ENDPOINT;
-  const accessKeyId = process.env.STORAGE_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.STORAGE_SECRET_ACCESS_KEY;
-
-  if (!endpoint || !accessKeyId || !secretAccessKey) {
-    throw new Error("Object storage is not configured (STORAGE_ENDPOINT / STORAGE_ACCESS_KEY_ID / STORAGE_SECRET_ACCESS_KEY)");
-  }
-
-  return new S3Client({
-    region: "auto",
-    endpoint,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-}
 
 const ALLOWED_CONTENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB
+export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB — also set as the bucket's own limit by storage:setup
+
+export function storageBucket() {
+  return process.env.SUPABASE_STORAGE_BUCKET || "store-media";
+}
+
+function supabaseUrl() {
+  return (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+}
 
 export function isStorageConfigured() {
-  return Boolean(process.env.STORAGE_ENDPOINT && process.env.STORAGE_ACCESS_KEY_ID && process.env.STORAGE_SECRET_ACCESS_KEY);
+  return Boolean(supabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+let client: SupabaseClient | null = null;
+
+export function storageAdminClient() {
+  if (!isStorageConfigured()) {
+    throw new Error("File storage is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");
+  }
+  client ??= createClient(supabaseUrl(), process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return client;
+}
+
+export function publicUrlFor(key: string) {
+  return `${supabaseUrl()}/storage/v1/object/public/${storageBucket()}/${key}`;
 }
 
 /**
- * Returns a short-lived presigned PUT URL scoped to the given store, so a
- * merchant's browser can upload directly to R2 without the file ever
- * passing through our server, and one store can never write into another
- * store's key prefix.
+ * Returns a signed upload URL scoped to the given store. The browser PUTs the
+ * file to `uploadUrl` with its Content-Type header; the URL works once, for
+ * this one path, and expires after two hours (Supabase's fixed lifetime).
  */
 export async function createUploadUrl(storeId: string, contentType: string, contentLength: number) {
   if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
@@ -44,23 +55,23 @@ export async function createUploadUrl(storeId: string, contentType: string, cont
     throw new Error(`File must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB`);
   }
 
-  const bucket = process.env.STORAGE_BUCKET;
-  if (!bucket) throw new Error("STORAGE_BUCKET is not configured");
-
   const extension = contentType.split("/")[1];
   const key = `stores/${storeId}/${randomUUID()}.${extension}`;
 
-  const client = getClient();
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    ContentType: contentType,
-    ContentLength: contentLength, // the presigned signature binds to this exact size — the client's PUT must match it
-  });
+  const { data, error } = await storageAdminClient().storage.from(storageBucket()).createSignedUploadUrl(key);
+  if (error || !data) throw new Error("Could not prepare the upload. Check that the storage bucket exists.");
 
-  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
-  const publicBase = process.env.STORAGE_PUBLIC_URL?.replace(/\/$/, "");
-  const publicUrl = publicBase ? `${publicBase}/${key}` : uploadUrl.split("?")[0];
+  return { uploadUrl: data.signedUrl, publicUrl: publicUrlFor(key), key };
+}
 
-  return { uploadUrl, publicUrl, key };
+/** For the admin system-health page: does the bucket exist and is it reachable? */
+export async function checkStorageBucket(): Promise<{ ok: boolean; detail: string }> {
+  if (!isStorageConfigured()) return { ok: false, detail: "Not configured" };
+  try {
+    const { data, error } = await storageAdminClient().storage.getBucket(storageBucket());
+    if (error || !data) return { ok: false, detail: `Bucket "${storageBucket()}" not found or not reachable` };
+    return { ok: true, detail: `Bucket "${data.name}" reachable (${data.public ? "public" : "private"})` };
+  } catch {
+    return { ok: false, detail: "Storage service not reachable" };
+  }
 }

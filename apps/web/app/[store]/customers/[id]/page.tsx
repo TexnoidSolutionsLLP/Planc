@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@sellly/database";
 import { Badge, Card, CardHeader, CardTitle } from "@sellly/ui";
 import { requireStore } from "@/lib/session";
-import { orderStatusVariant, orderStatusLabel } from "@/lib/order-status";
+import { NOT_SPENT_STATUSES, orderStatusVariant, orderStatusLabel } from "@/lib/order-status";
 
 export default async function CustomerDetailPage({ params }: { params: { store: string; id: string } }) {
   const { store } = await requireStore(params.store);
@@ -13,8 +13,10 @@ export default async function CustomerDetailPage({ params }: { params: { store: 
   });
   if (!customer) notFound();
 
-  const totalSpent = customer.orders.reduce((sum, o) => sum + Number(o.total), 0);
-  const avgOrderValue = customer.orders.length ? totalSpent / customer.orders.length : 0;
+  // Same rule as the customer list: cancelled, failed, refunded and returned orders don't count as spend.
+  const counted = customer.orders.filter((o) => !NOT_SPENT_STATUSES.includes(o.status));
+  const totalSpent = counted.reduce((sum, o) => sum + Number(o.total), 0);
+  const avgOrderValue = counted.length ? totalSpent / counted.length : 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

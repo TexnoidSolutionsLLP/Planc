@@ -3,8 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (Supabase pooler, port 6543) used by the running apps.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432) used by `prisma migrate` — migrations don't
+  // work through a transaction-mode pooler.
+  directUrl = env("DIRECT_URL")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -13,17 +17,31 @@ datasource db {
 
 model User {
   id            String   @id @default(cuid())
+  // Supabase Auth user id (auth.users.id). Credentials live in Supabase; this
+  // table holds the app profile and roles, which are never read from
+  // user-editable Supabase metadata.
+  authId        String?  @unique
   email         String   @unique
+  // Legacy Auth.js password hash — unused since the move to Supabase Auth,
+  // kept so existing rows migrate without data loss.
   passwordHash  String?
   name          String?
+  phone         String?
   avatarUrl     String?
+  // Only ever set by the controlled staff-setup script, never by sign-up.
   platformRole  PlatformRole @default(MERCHANT)
+  status        UserStatus @default(ACTIVE)
+  suspendedAt   DateTime?
   emailVerified DateTime?
+  lastActiveAt  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   memberships   StoreMember[]
   auditLogs     AuditLog[]
+  accessRequestsMade    AccessRequest[] @relation("AccessRequester")
+  accessRequestsDecided AccessRequest[] @relation("AccessDecider")
+  accessRequestsRevoked AccessRequest[] @relation("AccessRevoker")
 
   @@index([email])
   @@map("users")
@@ -32,6 +50,11 @@ model User {
 enum PlatformRole {
   MERCHANT
   PLATFORM_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
 }
 
 model Store {
@@ -47,6 +70,8 @@ model Store {
   publishedAt     DateTime?
   onboardingStep  String?  // tracks wizard progress
   activeThemeId   String?
+  suspendedAt     DateTime?
+  suspendedReason String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -64,6 +89,7 @@ model Store {
   auditLogs          AuditLog[]
   storeSettings      StoreSettings?
   paymentConnections PaymentConnection[]
+  accessRequests     AccessRequest[]
 
   @@index([slug])
   @@map("stores")
@@ -663,4 +689,64 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Staff access to merchant data
+//
+// Sellly staff (platformRole = PLATFORM_ADMIN) get no standing access to a
+// store's protected data. They file an AccessRequest for one store, one scope
+// and view and/or modify; only that store's OWNER (a merchant, never staff, and
+// never the requester) can approve it, and an approval always expires. The
+// migration backs these rules with CHECK constraints and a trigger, so a bug in
+// app code can't approve a request the rules forbid.
+// ────────────────────────────────────────────────────────────────────────────
+
+model AccessRequest {
+  id              String   @id @default(cuid())
+  storeId         String
+  requestedById   String
+  scope           AccessScope
+  requestedView   Boolean  @default(false)
+  requestedModify Boolean  @default(false)
+  // What the owner actually granted — may be narrower than what was requested.
+  grantedView     Boolean  @default(false)
+  grantedModify   Boolean  @default(false)
+  reason          String
+  durationHours   Int
+  status          AccessRequestStatus @default(PENDING)
+  decidedById     String?
+  decidedAt       DateTime?
+  decisionNote    String?
+  expiresAt       DateTime?
+  revokedById     String?
+  revokedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  store       Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  requestedBy User  @relation("AccessRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  decidedBy   User? @relation("AccessDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+  revokedBy   User? @relation("AccessRevoker", fields: [revokedById], references: [id], onDelete: Restrict)
+
+  @@index([storeId, status])
+  @@index([requestedById, status])
+  @@map("access_requests")
+}
+
+enum AccessScope {
+  STORE     // view: store profile, address, sales, payment setup, store audit trail · modify: suspend / reactivate
+  ORDERS    // view: orders incl. customer contact · modify: change order status
+  CUSTOMERS // view: customer list and contact details
+  PRODUCTS  // view: catalog, inventory, cost
+  BILLING   // modify: change the subscription plan
+  ACCOUNT   // modify: suspend / reactivate the owner's Sellly account
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+  CANCELLED
 }

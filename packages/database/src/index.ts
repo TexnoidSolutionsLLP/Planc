@@ -16,3 +16,22 @@ export { validateDiscountCode, recordDiscountUsage } from "./discounts";
 export type { DiscountApplication, DiscountValidationResult } from "./discounts";
 export { writeAuditLog } from "./audit";
 export { encryptSecret, decryptSecret } from "./crypto";
+export {
+  ACCESS_SCOPES,
+  ACCESS_DURATIONS_HOURS,
+  MAX_ACCESS_DURATION_HOURS,
+  AccessError,
+  assertStaffAccess,
+  cancelAccessRequest,
+  decideAccessRequest,
+  displayStatus,
+  findActiveGrant,
+  getStaffAccessState,
+  isGrantActive,
+  isStoreOwner,
+  requestAccess,
+  revokeAccess,
+  scopeSupports,
+  storesWithActiveGrant,
+} from "./access";
+export type { AccessLevel, AccessState, DisplayStatus } from "./access";

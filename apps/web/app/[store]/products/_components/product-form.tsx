@@ -29,6 +29,7 @@ export function ProductForm({
     description?: string;
     price?: number | string;
     compareAtPrice?: number | string;
+    cost?: number | string;
     sku?: string;
     inventoryQty?: number;
     status?: string;
@@ -85,6 +86,14 @@ export function ProductForm({
             <Label htmlFor="compareAtPrice">Compare-at price (₹)</Label>
             <Input id="compareAtPrice" name="compareAtPrice" type="number" step="0.01" defaultValue={defaultValues?.compareAtPrice} />
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="cost">
+            Cost per item (₹) <span className="font-normal text-muted">(optional)</span>
+          </Label>
+          <Input id="cost" name="cost" type="number" step="0.01" min="0" defaultValue={defaultValues?.cost} />
+          <p className="text-caption text-muted">What one unit costs you. Used to estimate profit — customers never see it.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

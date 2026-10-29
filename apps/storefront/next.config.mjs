@@ -11,7 +11,8 @@ const nextConfig = {
     "@sellly/theme",
   ],
   images: {
-    remotePatterns: [{ hostname: "picsum.photos" }, { hostname: "**.r2.dev" }],
+    // Product images live in Supabase Storage; r2.dev and picsum cover older/demo data.
+    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }, { hostname: "picsum.photos" }, { hostname: "**.r2.dev" }],
   },
 };
 

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ROOT_DOMAINS = ["sellly.app", "localhost:3001", "localhost"];
+// The storefront's own domain(s), comma-separated — e.g. "mystore.com". A request
+// for <slug>.<root domain> is served as that store; the root domain itself
+// (and *.vercel.app, which can't have per-store subdomains) is served by path.
+const ROOT_DOMAINS = [
+  ...(process.env.STOREFRONT_ROOT_DOMAINS ?? "sellly.app").split(",").map((d) => d.trim()).filter(Boolean),
+  "localhost:3001",
+  "localhost",
+];
 
 /**
  * Resolves store-name.sellly.app → /store-name/... internally, so every page

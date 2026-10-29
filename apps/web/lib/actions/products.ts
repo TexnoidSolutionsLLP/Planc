@@ -11,6 +11,8 @@ const productSchema = z.object({
   description: z.string().optional(),
   price: z.coerce.number().positive(),
   compareAtPrice: z.coerce.number().optional(),
+  // Blank means "not recorded" — distinct from a real cost of 0.
+  cost: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().min(0, "Cost can't be negative").optional()),
   sku: z.string().optional(),
   inventoryQty: z.coerce.number().int().min(0).default(0),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).default("DRAFT"),
@@ -50,6 +52,7 @@ export async function createProductAction(storeSlug: string, _prev: FormState, f
     description: parsed.data.description,
     price: parsed.data.price,
     compareAtPrice: parsed.data.compareAtPrice || null,
+    cost: parsed.data.cost ?? null,
     sku: parsed.data.sku,
     inventoryQty: parsed.data.inventoryQty,
     status: parsed.data.status,
@@ -72,16 +75,20 @@ export async function updateProductAction(storeSlug: string, productId: string, 
   const tags = parsed.data.tags ? parsed.data.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
   const images = parseImages(parsed.data.images);
 
-  await db.product.update(productId, {
+  const updated = await db.product.update(productId, {
     name: parsed.data.name,
     description: parsed.data.description,
     price: parsed.data.price,
     compareAtPrice: parsed.data.compareAtPrice || null,
+    cost: parsed.data.cost ?? null,
     sku: parsed.data.sku,
     inventoryQty: parsed.data.inventoryQty,
     status: parsed.data.status,
     tags,
   });
+  // updateMany is scoped to this store: zero rows means the product isn't ours,
+  // so stop before touching images (which would otherwise attach to it).
+  if (updated.count === 0) return { error: "Product not found" };
 
   // Replacing the image set is simpler and safer than diffing — product
   // images have no other relations that would be orphaned by a delete+recreate.

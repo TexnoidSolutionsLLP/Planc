@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@sellly/database";
 import { Badge, buttonVariants, EmptyState, Table, Thead, Th, Tr, Td } from "@sellly/ui";
 import { requireStore } from "@/lib/session";
+import { LOW_STOCK_THRESHOLD, SOLD_ORDER_STATUSES, stockState, unitEconomics } from "@/lib/product-metrics";
 
 const STATUS_VARIANT = { DRAFT: "default", ACTIVE: "success", ARCHIVED: "default" } as const;
 
@@ -25,15 +26,29 @@ export default async function ProductsPage({
       ...(filter === "draft" && { status: "DRAFT" }),
       ...(filter === "archived" && { status: "ARCHIVED" }),
       ...(filter === "out-of-stock" && { inventoryQty: 0 }),
+      ...(filter === "low-stock" && { trackInventory: true, inventoryQty: { gt: 0, lte: LOW_STOCK_THRESHOLD } }),
     },
     include: { images: { take: 1, orderBy: { position: "asc" } } },
     orderBy: { createdAt: "desc" },
+  });
+
+  const sold = products.length
+    ? await prisma.orderItem.groupBy({
+        by: ["productId"],
+        where: { productId: { in: products.map((p) => p.id) }, order: { storeId: store.id, status: { in: [...SOLD_ORDER_STATUSES] } } },
+        _sum: { quantity: true },
+      })
+    : [];
+  const unitsSold = new Map(sold.map((row) => [row.productId, row._sum.quantity ?? 0]));
+  const lowStockCount = await prisma.product.count({
+    where: { storeId: store.id, status: { not: "ARCHIVED" }, trackInventory: true, inventoryQty: { gt: 0, lte: LOW_STOCK_THRESHOLD } },
   });
 
   const filters = [
     { key: undefined, label: "All" },
     { key: "active", label: "Active" },
     { key: "draft", label: "Draft" },
+    { key: "low-stock", label: "Low stock" },
     { key: "out-of-stock", label: "Out of stock" },
     { key: "archived", label: "Archived" },
   ];
@@ -49,6 +64,12 @@ export default async function ProductsPage({
           Add product
         </Link>
       </div>
+
+      {lowStockCount > 0 && filter !== "low-stock" && (
+        <Link href="?status=low-stock" className="block rounded-lg border border-warning/30 bg-warning-soft px-4 py-3 text-small text-primary">
+          {lowStockCount} product{lowStockCount === 1 ? " is" : "s are"} running low (≤ {LOW_STOCK_THRESHOLD} left). <span className="font-medium underline">Review</span>
+        </Link>
+      )}
 
       <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist" aria-label="Filter products">
         {filters.map((f) => (
@@ -82,6 +103,9 @@ export default async function ProductsPage({
               <Th>Status</Th>
               <Th>Inventory</Th>
               <Th>Price</Th>
+              <Th>Cost</Th>
+              <Th title="Per unit at list price, before discounts, shipping, payment fees and refunds">Est. margin</Th>
+              <Th title="From confirmed, non-cancelled orders">Units sold</Th>
             </Tr>
           </Thead>
           <tbody>
@@ -100,8 +124,29 @@ export default async function ProductsPage({
                 <Td>
                   <Badge variant={STATUS_VARIANT[p.status]}>{p.status}</Badge>
                 </Td>
-                <Td>{p.inventoryQty === 0 ? <span className="text-error">Out of stock</span> : p.inventoryQty}</Td>
-                <Td>₹{Number(p.price).toLocaleString("en-IN")}</Td>
+                <Td>
+                  {(() => {
+                    const state = stockState(p);
+                    if (state === "untracked") return <span className="text-muted">Not tracked</span>;
+                    if (state === "out") return <span className="text-error">Out of stock</span>;
+                    if (state === "low") return <span className="font-medium text-warning">{p.inventoryQty} · Low</span>;
+                    return p.inventoryQty;
+                  })()}
+                </Td>
+                <Td className="tabular">₹{Number(p.price).toLocaleString("en-IN")}</Td>
+                <Td className="tabular text-muted">{p.cost != null ? `₹${Number(p.cost).toLocaleString("en-IN")}` : "—"}</Td>
+                <Td className="tabular">
+                  {(() => {
+                    const { profit, margin } = unitEconomics(Number(p.price), p.cost != null ? Number(p.cost) : null);
+                    if (profit == null || margin == null) return <span className="text-muted" title="Add a cost to see margin">—</span>;
+                    return (
+                      <span className={profit < 0 ? "text-error" : undefined}>
+                        ₹{profit.toLocaleString("en-IN", { maximumFractionDigits: 2 })} <span className="text-muted">({Math.round(margin * 100)}%)</span>
+                      </span>
+                    );
+                  })()}
+                </Td>
+                <Td className="tabular">{unitsSold.get(p.id) ?? 0}</Td>
               </Tr>
             ))}
           </tbody>

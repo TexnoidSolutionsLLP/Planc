@@ -18,6 +18,7 @@ import {
   Percent,
   Search,
   Settings,
+  ShieldCheck,
   Store as StoreIcon,
   Tag,
   Users,
@@ -33,6 +34,8 @@ interface ShellProps {
   recentOrders: { id: string; orderNumber: number; customerName: string; status: string; total: number; createdAt: string }[];
   newOrderCount: number;
   storefrontUrl: string;
+  /** Staff access requests waiting for the owner's decision (0 for non-owners). */
+  pendingAccessCount?: number;
   children: React.ReactNode;
 }
 
@@ -59,6 +62,7 @@ const NAV_GROUPS = [
     heading: "Account",
     items: [
       { label: "Billing", href: "billing", Icon: CreditCard },
+      { label: "Sellly access", href: "access", Icon: ShieldCheck },
       { label: "Settings", href: "settings", Icon: Settings },
     ],
   },
@@ -74,7 +78,12 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function SidebarContent({ store, stores, onNavigate }: Pick<ShellProps, "store" | "stores"> & { onNavigate?: () => void }) {
+function SidebarContent({
+  store,
+  stores,
+  pendingAccessCount = 0,
+  onNavigate,
+}: Pick<ShellProps, "store" | "stores" | "pendingAccessCount"> & { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -140,6 +149,11 @@ function SidebarContent({ store, stores, onNavigate }: Pick<ShellProps, "store" 
                     >
                       <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.85} />
                       {label}
+                      {href === "access" && pendingAccessCount > 0 && (
+                        <Badge variant="warning" className="ml-auto" aria-label={`${pendingAccessCount} pending`}>
+                          {pendingAccessCount}
+                        </Badge>
+                      )}
                     </Link>
                   </li>
                 );
@@ -152,7 +166,7 @@ function SidebarContent({ store, stores, onNavigate }: Pick<ShellProps, "store" 
   );
 }
 
-export function DashboardShell({ store, stores, user, recentOrders, newOrderCount, storefrontUrl, children }: ShellProps) {
+export function DashboardShell({ store, stores, user, recentOrders, newOrderCount, storefrontUrl, pendingAccessCount, children }: ShellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const pathname = usePathname();
 
@@ -167,7 +181,7 @@ export function DashboardShell({ store, stores, user, recentOrders, newOrderCoun
   return (
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] border-r border-border bg-surface lg:block">
-        <SidebarContent store={store} stores={stores} />
+        <SidebarContent store={store} stores={stores} pendingAccessCount={pendingAccessCount} />
       </aside>
 
       {drawerOpen && (
@@ -182,7 +196,7 @@ export function DashboardShell({ store, stores, user, recentOrders, newOrderCoun
             >
               <X className="h-[18px] w-[18px]" />
             </button>
-            <SidebarContent store={store} stores={stores} onNavigate={() => setDrawerOpen(false)} />
+            <SidebarContent store={store} stores={stores} pendingAccessCount={pendingAccessCount} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       )}

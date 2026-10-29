@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@sellly/database";
-import { Badge, Button, Card, CardHeader, CardTitle } from "@sellly/ui";
+import { Badge, Button, Card, CardHeader, CardTitle, buttonVariants } from "@sellly/ui";
 import { requireStore } from "@/lib/session";
 import { orderStatusVariant, orderStatusLabel, ORDER_STATUS_FLOW } from "@/lib/order-status";
 import { advanceOrderStatusAction, cancelOrderAction } from "@/lib/actions/orders";
 import { ConfirmAction } from "../../_components/confirm-action";
+import { whatsappOrderLink } from "@/lib/whatsapp";
 
 export default async function OrderDetailPage({ params }: { params: { store: string; id: string } }) {
   const { store } = await requireStore(params.store);
@@ -15,6 +16,7 @@ export default async function OrderDetailPage({ params }: { params: { store: str
       payment: true,
       events: { orderBy: { createdAt: "asc" } },
       customer: true,
+      shipments: { orderBy: { createdAt: "desc" } },
     },
   });
   if (!order) notFound();
@@ -26,6 +28,7 @@ export default async function OrderDetailPage({ params }: { params: { store: str
 
   const advanceAction = nextStatus ? advanceOrderStatusAction.bind(null, store.slug, order.id, nextStatus) : undefined;
   const cancelAction = cancelOrderAction.bind(null, store.slug, order.id);
+  const chat = whatsappOrderLink({ phone: order.customerPhone, customerName: order.customerName, storeName: store.name, orderNumber: order.orderNumber });
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -103,6 +106,13 @@ export default async function OrderDetailPage({ params }: { params: { store: str
             <p className="text-small font-medium text-primary">{order.customerName}</p>
             <p className="text-small text-muted">{order.customerPhone}</p>
             {order.customerEmail && <p className="text-small text-muted">{order.customerEmail}</p>}
+            {chat ? (
+              <a href={chat} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "secondary", size: "sm", className: "mt-3" })}>
+                Message on WhatsApp
+              </a>
+            ) : (
+              <p className="mt-3 text-caption text-muted">No valid WhatsApp number on this order.</p>
+            )}
           </Card>
 
           <Card>
@@ -115,6 +125,18 @@ export default async function OrderDetailPage({ params }: { params: { store: str
               {order.shippingCity}, {order.shippingState} {order.shippingPostal}
             </p>
             {order.trackingNumber && <p className="mt-2 text-caption text-muted">Tracking: {order.trackingNumber}</p>}
+            {order.shipments.length > 0 ? (
+              <ul className="mt-3 space-y-1 border-t border-border pt-3">
+                {order.shipments.map((sh) => (
+                  <li key={sh.id} className="text-caption text-muted">
+                    Shipment {sh.provider ? `via ${sh.provider} ` : ""}— <span className="font-medium text-primary">{orderStatusLabel(sh.status)}</span>
+                    {sh.deliveredAt ? `, delivered ${sh.deliveredAt.toLocaleDateString("en-IN")}` : sh.shippedAt ? `, shipped ${sh.shippedAt.toLocaleDateString("en-IN")}` : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-caption text-muted">No shipment created yet.</p>
+            )}
           </Card>
 
           <Card>

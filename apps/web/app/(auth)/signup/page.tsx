@@ -17,6 +17,21 @@ function SubmitButton() {
 export default function SignupPage() {
   const [state, formAction] = useFormState(signupAction, undefined);
 
+  if (state?.message) {
+    return (
+      <div>
+        <h1 className="text-[22px] font-semibold tracking-tight text-primary">Check your email</h1>
+        <p className="mt-2 text-body text-muted">{state.message}</p>
+        <p className="mt-6 text-center text-small text-muted">
+          Already confirmed?{" "}
+          <Link href="/login" className="font-medium text-brand hover:text-brand-hover">
+            Log in
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="text-[22px] font-semibold tracking-tight text-primary">Create your account</h1>
@@ -29,6 +44,12 @@ export default function SignupPage() {
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">
+            Phone <span className="font-normal text-muted">(optional)</span>
+          </Label>
+          <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>

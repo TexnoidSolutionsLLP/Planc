@@ -1,5 +1,5 @@
 const ANTHROPIC_VERSION = "2023-06-01";
-const DEFAULT_MODEL = "claude-sonnet-5";
+const DEFAULT_MODEL = "claude-sonnet-5-5";
 
 export function isAiConfigured() {
   return Boolean(process.env.ANTHROPIC_API_KEY);

@@ -38,6 +38,7 @@ export default async function EditProductPage({ params }: { params: { store: str
           description: product.description ?? "",
           price: Number(product.price),
           compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : undefined,
+          cost: product.cost != null ? Number(product.cost) : undefined,
           sku: product.sku ?? "",
           inventoryQty: product.inventoryQty,
           status: product.status,

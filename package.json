@@ -2,7 +2,7 @@
   "name": "sellly",
   "private": true,
   "version": "0.1.0",
-  "description": "Sellly — turn your social audience into a store. Multi-tenant social-commerce SaaS.",
+  "description": "Sellly \u2014 turn your social audience into a store. Multi-tenant social-commerce SaaS.",
   "scripts": {
     "dev:web": "pnpm --filter @sellly/web dev",
     "dev:storefront": "pnpm --filter @sellly/storefront dev",
@@ -14,7 +14,10 @@
     "db:generate": "pnpm --filter @sellly/database generate",
     "db:migrate": "pnpm --filter @sellly/database migrate",
     "db:seed": "pnpm --filter @sellly/database seed",
-    "db:studio": "pnpm --filter @sellly/database studio"
+    "db:studio": "pnpm --filter @sellly/database studio",
+    "db:deploy": "pnpm --filter @sellly/database run deploy",
+    "staff:create": "pnpm --filter @sellly/auth run staff:create",
+    "storage:setup": "pnpm --filter @sellly/storage run storage:setup"
   },
   "engines": {
     "node": ">=20"

@@ -13,6 +13,14 @@ function slugify(input: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+/** Onboarding actions take a storeId from the client, so check the caller belongs to that store. */
+async function requireOwnStore(storeId: string) {
+  const { userId } = await requireUser();
+  const membership = await prisma.storeMember.findUnique({ where: { storeId_userId: { storeId, userId } } });
+  if (!membership) throw new Error("Forbidden");
+  return userId;
+}
+
 async function uniqueSlug(base: string) {
   let slug = base || "store";
   let n = 1;
@@ -45,6 +53,7 @@ export async function createStoreAction(name: string, category: string) {
 }
 
 export async function addFirstProductAction(storeId: string, data: { name: string; price: number; description?: string }) {
+  await requireOwnStore(storeId);
   const slug = slugify(data.name);
   await prisma.product.create({
     data: {
@@ -61,6 +70,7 @@ export async function addFirstProductAction(storeId: string, data: { name: strin
 }
 
 export async function setThemeAction(storeId: string, themeName: string) {
+  await requireOwnStore(storeId);
   const template = getTemplate(themeName);
   await prisma.theme.create({
     data: {
@@ -75,11 +85,15 @@ export async function setThemeAction(storeId: string, themeName: string) {
 }
 
 export async function enableCodAction(storeId: string) {
+  await requireOwnStore(storeId);
   await prisma.storeSettings.update({ where: { storeId }, data: { codEnabled: true } });
   await prisma.store.update({ where: { id: storeId }, data: { onboardingStep: "publish" } });
 }
 
 export async function publishStoreAction(storeId: string) {
+  await requireOwnStore(storeId);
+  const current = await prisma.store.findUniqueOrThrow({ where: { id: storeId } });
+  if (current.status === "SUSPENDED") throw new Error("This store is suspended. Contact Sellly support.");
   const store = await prisma.store.update({
     where: { id: storeId },
     data: { status: "PUBLISHED", publishedAt: new Date(), onboardingStep: null },

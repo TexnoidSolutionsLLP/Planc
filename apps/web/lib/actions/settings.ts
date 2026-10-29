@@ -32,6 +32,8 @@ export async function updateStoreSettingsAction(storeSlug: string, _prev: FormSt
 
 export async function togglePublishAction(storeSlug: string) {
   const { store } = await requireStore(storeSlug);
+  // Only Sellly (with the owner's approval) can lift a suspension.
+  if (store.status === "SUSPENDED") throw new Error("This store is suspended. Contact Sellly support.");
   await prisma.store.update({
     where: { id: store.id },
     data: {
