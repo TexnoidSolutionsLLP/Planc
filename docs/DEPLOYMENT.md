@@ -27,7 +27,7 @@ long-running servers. Notifications are sent while the request runs.
    `SUPABASE_SERVICE_ROLE_KEY`.
 3. **Connect → ORMs → Prisma**: copy the two connection strings.
    - Transaction pooler (port **6543**) → `DATABASE_URL`, and add
-     `?pgbouncer=true&connection_limit=1` to the end.
+     `?pgbouncer=true&connection_limit=5&pool_timeout=20` to the end.
    - Direct / session (port **5432**) → `DIRECT_URL`.
 4. **Authentication → Sign In / Providers → Email**: keep *Confirm email*
    **on**. Merchants must prove they own their email before they can sign in.
