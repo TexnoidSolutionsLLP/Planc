@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // pnpm keeps the Prisma query engine outside each app's folder; make sure Vercel ships it.
+  experimental: {
+    outputFileTracingIncludes: {
+      "/**": ["../../node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/**"],
+    },
+  },
   transpilePackages: [
     "@sellly/ui",
     "@sellly/auth",
