@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@sellly/database";
+import { prisma, type Prisma } from "@sellly/database";
 import { getTemplate, templateSections } from "@sellly/theme";
 import { requireUser } from "@/lib/session";
 
@@ -13,6 +13,26 @@ function slugify(input: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function isCode(err: unknown, code: string) {
+  return (err as { code?: string } | null)?.code === code;
+}
+
+/**
+ * Runs a write that is scoped to a store the caller belongs to. The membership
+ * check lives in the update's `where`, so ownership and the write are a single
+ * query instead of a lookup followed by an update. No matching row (not a
+ * member, or no such store) means Forbidden.
+ */
+async function updateOwnStore(storeId: string, data: Prisma.StoreUpdateInput) {
+  const { userId } = await requireUser();
+  try {
+    await prisma.store.update({ where: { id: storeId, members: { some: { userId } } }, data });
+  } catch (err) {
+    if (isCode(err, "P2025")) throw new Error("Forbidden");
+    throw err;
+  }
+}
+
 /** Onboarding actions take a storeId from the client, so check the caller belongs to that store. */
 async function requireOwnStore(storeId: string) {
   const { userId } = await requireUser();
@@ -21,73 +41,76 @@ async function requireOwnStore(storeId: string) {
   return userId;
 }
 
-async function uniqueSlug(base: string) {
-  let slug = base || "store";
-  let n = 1;
-  while (await prisma.store.findUnique({ where: { slug } })) {
-    n += 1;
-    slug = `${base}-${n}`;
+/**
+ * Tries `base`, `base-2`, `base-3`... until the write succeeds. The database's
+ * unique constraint is the check, so a taken slug costs one failed insert
+ * instead of a lookup query per candidate on every attempt.
+ */
+async function withUniqueSlug<T>(base: string, attempt: (slug: string) => Promise<T>): Promise<T> {
+  const root = base || "store";
+  for (let n = 1; n <= 8; n++) {
+    try {
+      return await attempt(n === 1 ? root : `${root}-${n}`);
+    } catch (err) {
+      if (!isCode(err, "P2002")) throw err;
+    }
   }
-  return slug;
+  return attempt(`${root}-${Math.random().toString(36).slice(2, 7)}`);
 }
 
 export async function createStoreAction(name: string, category: string) {
   const { userId } = await requireUser();
-  const slug = await uniqueSlug(slugify(name));
 
-  const store = await prisma.store.create({
-    data: {
-      name,
-      slug,
-      category,
-      status: "DRAFT",
-      onboardingStep: "product",
-      members: { create: { userId, role: "OWNER" } },
-      storeSettings: { create: { codEnabled: true } },
-      subscription: { create: { plan: "FREE" } },
-      domains: { create: { hostname: slug, isSubdomain: true, isPrimary: true, status: "VERIFIED" } },
-    },
-  });
+  const store = await withUniqueSlug(slugify(name), (slug) =>
+    prisma.store.create({
+      data: {
+        name,
+        slug,
+        category,
+        status: "DRAFT",
+        onboardingStep: "product",
+        members: { create: { userId, role: "OWNER" } },
+        storeSettings: { create: { codEnabled: true } },
+        subscription: { create: { plan: "FREE" } },
+        domains: { create: { hostname: slug, isSubdomain: true, isPrimary: true, status: "VERIFIED" } },
+      },
+    }),
+  );
 
   return { storeId: store.id, slug: store.slug };
 }
 
 export async function addFirstProductAction(storeId: string, data: { name: string; price: number; description?: string }) {
-  await requireOwnStore(storeId);
-  const slug = slugify(data.name);
-  await prisma.product.create({
-    data: {
-      storeId,
-      name: data.name,
-      slug: await uniqueSlug(slug),
-      description: data.description,
-      price: data.price,
-      status: "ACTIVE",
-      inventoryQty: 10,
-    },
-  });
-  await prisma.store.update({ where: { id: storeId }, data: { onboardingStep: "theme" } });
+  await withUniqueSlug(slugify(data.name), (slug) =>
+    updateOwnStore(storeId, {
+      onboardingStep: "theme",
+      products: {
+        create: { name: data.name, slug, description: data.description, price: data.price, status: "ACTIVE", inventoryQty: 10 },
+      },
+    }),
+  );
 }
 
 export async function setThemeAction(storeId: string, themeName: string) {
-  await requireOwnStore(storeId);
   const template = getTemplate(themeName);
-  await prisma.theme.create({
-    data: {
-      storeId,
-      name: template.name,
-      baseTheme: template.id,
-      config: { sections: templateSections(template.id) } as any,
-      isActive: true,
+  await updateOwnStore(storeId, {
+    onboardingStep: "payment",
+    themes: {
+      create: {
+        name: template.name,
+        baseTheme: template.id,
+        config: { sections: templateSections(template.id) } as any,
+        isActive: true,
+      },
     },
   });
-  await prisma.store.update({ where: { id: storeId }, data: { onboardingStep: "payment" } });
 }
 
 export async function enableCodAction(storeId: string) {
-  await requireOwnStore(storeId);
-  await prisma.storeSettings.update({ where: { storeId }, data: { codEnabled: true } });
-  await prisma.store.update({ where: { id: storeId }, data: { onboardingStep: "publish" } });
+  await updateOwnStore(storeId, {
+    onboardingStep: "publish",
+    storeSettings: { update: { codEnabled: true } },
+  });
 }
 
 export async function publishStoreAction(storeId: string) {

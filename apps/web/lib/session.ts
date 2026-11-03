@@ -1,8 +1,17 @@
+import { cache } from "react";
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser, requireStoreAccess } from "@sellly/auth";
 
+/**
+ * Memoized per request: layouts, pages and server actions all ask who the
+ * user is, and without this each call repeats the Supabase round trip and the
+ * profile query.
+ */
+export const getWebUser = cache(() => getCurrentUser("web"));
+const getStoreAccess = cache((userId: string, storeSlug: string) => requireStoreAccess(userId, storeSlug));
+
 export async function requireUser() {
-  const user = await getCurrentUser("web");
+  const user = await getWebUser();
   if (!user) redirect("/login");
   if (user.status !== "ACTIVE") redirect("/login?error=suspended");
   // Staff and merchant identities stay separate: staff use the admin app only.
@@ -14,7 +23,7 @@ export async function requireUser() {
  * isolation checkpoint that stops one merchant loading another's store. */
 export async function requireStore(storeSlug: string) {
   const { userId, user } = await requireUser();
-  const access = await requireStoreAccess(userId, storeSlug);
+  const access = await getStoreAccess(userId, storeSlug);
   if (!access) notFound();
   return { ...access, userId, user };
 }
@@ -32,10 +41,10 @@ export async function requireStoreOwner(storeSlug: string) {
  * sane response from an API route, so this returns null instead of throwing.
  */
 export async function requireStoreForApi(storeSlug: string) {
-  const user = await getCurrentUser("web");
+  const user = await getWebUser();
   if (!user || user.status !== "ACTIVE" || user.platformRole !== "MERCHANT") return null;
 
-  const access = await requireStoreAccess(user.id, storeSlug);
+  const access = await getStoreAccess(user.id, storeSlug);
   if (!access) return null;
   return { ...access, userId: user.id };
 }
