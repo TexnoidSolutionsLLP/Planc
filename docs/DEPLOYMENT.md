@@ -91,6 +91,11 @@ the Prisma client is generated automatically during install. Keep
 *"Include source files outside of the Root Directory"* enabled (the default),
 because the apps import the shared `packages/` folder.
 
+Each app's `vercel.json` pins its functions to `sin1` (Singapore), the same
+region as the Supabase database. If you create your Supabase project in a
+different region, change `regions` in the three `vercel.json` files to the
+nearest Vercel region, so server code and the database stay close together.
+
 ### Environment variables per project
 
 Set these in each project under **Settings → Environment Variables** for the
