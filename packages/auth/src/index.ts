@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { prisma, type User } from "@sellly/database";
 import { AUTH_COOKIE_NAME, requireSupabaseEnv, type AuthApp } from "./env";
 
-export { isSupabaseAuthConfigured, AUTH_COOKIE_NAME } from "./env";
+export { isSupabaseAuthConfigured, supabasePublishableKey, AUTH_COOKIE_NAME } from "./env";
 export type { AuthApp } from "./env";
 
 /**

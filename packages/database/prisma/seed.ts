@@ -33,9 +33,11 @@ const DEMO_PASSWORD = "password123";
  */
 async function ensureSupabaseLogin(email: string, password: string): Promise<string | null> {
   const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
-  const headers = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+  // New sb_secret_ keys go on the apikey header only; legacy JWT keys also need a Bearer header.
+  const headers: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
+  if (!key.startsWith("sb_")) headers.Authorization = `Bearer ${key}`;
 
   const created = await fetch(`${url}/auth/v1/admin/users`, {
     method: "POST",

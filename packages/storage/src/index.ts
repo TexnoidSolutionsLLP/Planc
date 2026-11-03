@@ -22,17 +22,22 @@ function supabaseUrl() {
   return (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
 }
 
+/** SUPABASE_SECRET_KEY (sb_secret_...) replaces the legacy service_role key; the old name is still read as a fallback. */
+function secretKey() {
+  return process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+}
+
 export function isStorageConfigured() {
-  return Boolean(supabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(supabaseUrl() && secretKey());
 }
 
 let client: SupabaseClient | null = null;
 
 export function storageAdminClient() {
   if (!isStorageConfigured()) {
-    throw new Error("File storage is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");
+    throw new Error("File storage is not configured (SUPABASE_URL / SUPABASE_SECRET_KEY)");
   }
-  client ??= createClient(supabaseUrl(), process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  client ??= createClient(supabaseUrl(), secretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return client;

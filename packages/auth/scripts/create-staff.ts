@@ -4,7 +4,7 @@
  *   pnpm --filter @sellly/auth staff:create --email dev@yourcompany.com --name "Dev Name"
  *   pnpm --filter @sellly/auth staff:create --email dev@yourcompany.com --remove
  *
- * It needs DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY, which only the people
+ * It needs DATABASE_URL and SUPABASE_SECRET_KEY, which only the people
  * who run the infrastructure hold — there is deliberately no web page or API
  * for this. Staff accounts must be separate from merchant accounts: an
  * email that owns a store is refused, because an owner who is also staff

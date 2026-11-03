@@ -6,8 +6,8 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@sellly/database": "workspace:*",
-    "@supabase/ssr": "0.6.1",
-    "@supabase/supabase-js": "2.49.4"
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.0",

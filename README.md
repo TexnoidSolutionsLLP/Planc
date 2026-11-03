@@ -51,7 +51,7 @@ pnpm dev:admin              # http://localhost:3002
 ```
 
 Seeded merchant login: `demo@sellly.app` / `password123` (store: `aria-jewelry`). The seed creates this login in
-Supabase when `SUPABASE_SERVICE_ROLE_KEY` is set, and refuses to run in production. There is no seeded staff
+Supabase when `SUPABASE_SECRET_KEY` is set, and refuses to run in production. There is no seeded staff
 account; `staff:create` prints a one-time password.
 
 Visit the seeded store at `http://aria-jewelry.localhost:3001` (or `http://localhost:3001/aria-jewelry` if your

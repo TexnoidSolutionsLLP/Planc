@@ -2,6 +2,7 @@ import { prisma } from "@sellly/database";
 import { checkStorageBucket } from "@sellly/storage";
 import { Badge, Card, CardDescription, CardHeader, CardTitle } from "@sellly/ui";
 import { requireAdmin } from "@/lib/require-admin";
+import { supabasePublishableKey } from "@sellly/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,8 @@ async function databaseCheck(): Promise<Check> {
 
 async function supabaseAuthCheck(): Promise<Check> {
   const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
-  const key = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return { name: "Supabase Auth", status: "fail", detail: "SUPABASE_URL / SUPABASE_ANON_KEY not set" };
+  const key = supabasePublishableKey();
+  if (!url || !key) return { name: "Supabase Auth", status: "fail", detail: "SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY not set" };
   try {
     const { value: res, ms } = await timed(() => fetch(`${url}/auth/v1/health`, { headers: { apikey: key }, cache: "no-store", signal: AbortSignal.timeout(4000) }));
     return res.ok

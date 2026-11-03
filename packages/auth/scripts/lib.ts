@@ -12,9 +12,9 @@ try {
  */
 export function adminClient(): SupabaseClient {
   const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
-    console.error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (and DATABASE_URL) before running this script.");
+    console.error("Set SUPABASE_URL and SUPABASE_SECRET_KEY (and DATABASE_URL) before running this script.");
     process.exit(1);
   }
   return createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });

@@ -20,16 +20,22 @@ export async function updateSession(request: NextRequest, app: AuthApp) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        // Responses that set a session cookie must never be cached and served to someone else.
+        Object.entries(headers ?? {}).forEach(([k, v]) => response.headers.set(k, v));
       },
     },
   });
 
-  // getUser() (not getSession()) asks Supabase to validate the token and
-  // refreshes it when needed.
-  await supabase.auth.getUser();
+  // getClaims() refreshes an expired session and verifies the access token
+  // locally against the project's public signing key (cached for 10 minutes),
+  // so a normal request makes no network call to Supabase. Tokens still signed
+  // with the legacy shared secret fall back to a getUser() round trip.
+  // Authorization never relies on this: pages and actions call getCurrentUser(),
+  // which validates with Supabase directly.
+  await supabase.auth.getClaims();
   return response;
 }

@@ -22,9 +22,15 @@ long-running servers. Notifications are sent while the request runs.
 
 1. Go to supabase.com → **New project**. Choose a region near your customers
    (e.g. Mumbai). Save the database password somewhere safe.
-2. **Project Settings → API**: copy the *Project URL*, the *anon* key and the
-   *service_role* key. These are `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
-   `SUPABASE_SERVICE_ROLE_KEY`.
+2. **Project Settings → API Keys**: copy the *Project URL*, the **Publishable
+   key** (`sb_publishable_...`) and the **Secret key** (`sb_secret_...`). These
+   are `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`.
+   Don't use the legacy anon / service_role keys: Supabase retires them in 2027.
+   (The apps still read `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` as a
+   fallback, so an older deployment keeps working until it's switched.)
+   Under **JWT Keys**, make sure the current signing key is an asymmetric one
+   (ECC P-256); the apps then verify sessions locally instead of calling Supabase
+   on every request.
 3. **Connect → ORMs → Prisma**: copy the two connection strings.
    - Transaction pooler (port **6543**) → `DATABASE_URL`, and add
      `?pgbouncer=true&connection_limit=5&pool_timeout=20` to the end.
@@ -105,8 +111,8 @@ pointing at a separate Supabase project).
 | Variable | web | storefront | admin |
 |---|:-:|:-:|:-:|
 | `DATABASE_URL`, `DIRECT_URL` | ✓ | ✓ | ✓ |
-| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | ✓ | | ✓ |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✓ | | ✓ |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | ✓ | | ✓ |
+| `SUPABASE_SECRET_KEY` | ✓ | | ✓ |
 | `SUPABASE_STORAGE_BUCKET` (optional) | ✓ | | ✓ |
 | `APP_URL` | ✓ | | |
 | `STOREFRONT_URL` | ✓ | | ✓ |
