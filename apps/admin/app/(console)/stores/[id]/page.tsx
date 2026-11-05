@@ -429,12 +429,12 @@ async function OrdersTab({ staffId, storeId }: { staffId: string; storeId: strin
   if (!state.allowed) return <Restricted message={accessStateMessage(state, "ORDERS", "view")} />;
   const orders = await prisma.order.findMany({ where: { storeId }, include: { payment: { select: { method: true, status: true } } }, orderBy: { createdAt: "desc" }, take: 100 });
   return (
-    <Table>
+    <Table containerLabel="Store orders">
       <Thead>
         <Tr>
           <Th>Order</Th>
           <Th>Customer</Th>
-          <Th>Total</Th>
+          <Th className="text-right">Total</Th>
           <Th>Status</Th>
           <Th>Payment</Th>
           <Th>Placed</Th>
@@ -452,7 +452,7 @@ async function OrdersTab({ staffId, storeId }: { staffId: string; storeId: strin
               {o.customerName}
               <span className="block text-caption text-muted">{o.customerPhone}</span>
             </Td>
-            <Td>{inr(Number(o.total))}</Td>
+            <Td className="text-right tabular">{inr(Number(o.total))}</Td>
             <Td>
               <Badge>{o.status}</Badge>
             </Td>
@@ -482,12 +482,12 @@ async function CustomersTab({ staffId, storeId }: { staffId: string; storeId: st
     take: 200,
   });
   return (
-    <Table>
+    <Table containerLabel="Store customers">
       <Thead>
         <Tr>
           <Th>Name</Th>
           <Th>Contact</Th>
-          <Th>Orders</Th>
+          <Th className="text-right">Orders</Th>
           <Th>Spent</Th>
         </Tr>
       </Thead>
@@ -500,7 +500,7 @@ async function CustomersTab({ staffId, storeId }: { staffId: string; storeId: st
               {c.email && <span className="block text-caption">{c.email}</span>}
             </Td>
             <Td>{c.orders.length}</Td>
-            <Td>{inr(c.orders.filter((o) => !["CANCELLED", "FAILED", "REFUNDED", "RETURNED"].includes(o.status)).reduce((n, o) => n + Number(o.total), 0))}</Td>
+            <Td className="text-right tabular">{inr(c.orders.filter((o) => !["CANCELLED", "FAILED", "REFUNDED", "RETURNED"].includes(o.status)).reduce((n, o) => n + Number(o.total), 0))}</Td>
           </Tr>
         ))}
         {customers.length === 0 && (
@@ -520,7 +520,7 @@ async function ProductsTab({ staffId, storeId }: { staffId: string; storeId: str
   if (!state.allowed) return <Restricted message={accessStateMessage(state, "PRODUCTS", "view")} />;
   const products = await prisma.product.findMany({ where: { storeId }, orderBy: { createdAt: "desc" }, take: 200 });
   return (
-    <Table>
+    <Table containerLabel="Store products">
       <Thead>
         <Tr>
           <Th>Product</Th>
@@ -537,7 +537,7 @@ async function ProductsTab({ staffId, storeId }: { staffId: string; storeId: str
             <Td>
               <Badge>{p.status}</Badge>
             </Td>
-            <Td>{inr(Number(p.price))}</Td>
+            <Td className="text-right tabular">{inr(Number(p.price))}</Td>
             <Td className="text-muted">{p.cost != null ? inr(Number(p.cost)) : "—"}</Td>
             <Td>{p.trackInventory ? p.inventoryQty : "Not tracked"}</Td>
           </Tr>

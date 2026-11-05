@@ -67,7 +67,7 @@ export default async function RevenuePage() {
 
       <section className="space-y-3">
         <h2 className="text-h3 text-primary">Sellly subscription revenue</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="metric-grid grid gap-4 sm:grid-cols-3">
           <Card>
             <p className="text-small text-muted">Monthly recurring revenue</p>
             <p className="mt-1 text-h2 text-primary">{inr(mrr)}</p>
@@ -165,12 +165,12 @@ export default async function RevenuePage() {
             <CardTitle>Highest-performing stores</CardTitle>
             <CardDescription>By order count, excluding cancelled, failed, refunded and returned. A store&apos;s sales figure shows only with its owner&apos;s approval.</CardDescription>
           </CardHeader>
-          <Table>
+          <Table containerLabel="Revenue records">
             <Thead>
               <Tr>
                 <Th>Store</Th>
-                <Th>Orders</Th>
-                <Th>Sales</Th>
+                <Th className="text-right">Orders</Th>
+                <Th className="text-right">Sales</Th>
               </Tr>
             </Thead>
             <tbody>
@@ -183,8 +183,8 @@ export default async function RevenuePage() {
                         {topStores.find((s) => s.id === t.storeId)?.name ?? "—"}
                       </Link>
                     </Td>
-                    <Td className="tabular">{t._count._all}</Td>
-                    <Td className="tabular">{sales ? inr(Number(sales._sum.total ?? 0)) : <span className="text-caption text-muted">Needs approval</span>}</Td>
+                    <Td className="tabular text-right">{t._count._all}</Td>
+                    <Td className="tabular text-right">{sales ? inr(Number(sales._sum.total ?? 0)) : <span className="text-caption text-muted">Needs approval</span>}</Td>
                   </Tr>
                 );
               })}

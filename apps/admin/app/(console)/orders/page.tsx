@@ -35,7 +35,7 @@ export default async function PlatformOrdersPage() {
         <p className="text-body text-muted">Order details appear only for stores whose owner approved your access.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="metric-grid grid gap-4 sm:grid-cols-3">
         <Card>
           <p className="text-small text-muted">Orders on the platform</p>
           <p className="mt-1 text-h2 text-primary">{totalOrders.toLocaleString("en-IN")}</p>
@@ -57,13 +57,13 @@ export default async function PlatformOrdersPage() {
           You have no approved order access right now. Open a store and request &ldquo;Orders&rdquo; view access from its owner.
         </p>
       ) : (
-        <Table>
+        <Table containerLabel="Orders records">
           <Thead>
             <Tr>
               <Th>Order</Th>
               <Th>Store</Th>
               <Th>Customer</Th>
-              <Th>Total</Th>
+              <Th className="text-right">Total</Th>
               <Th>Status</Th>
               <Th>Payment</Th>
               <Th>Placed</Th>
@@ -82,7 +82,7 @@ export default async function PlatformOrdersPage() {
                   {o.customerName}
                   <span className="block text-caption text-muted">{o.customerPhone}</span>
                 </Td>
-                <Td>{inr(Number(o.total))}</Td>
+                <Td className="text-right tabular">{inr(Number(o.total))}</Td>
                 <Td>
                   <Badge>{o.status}</Badge>
                 </Td>

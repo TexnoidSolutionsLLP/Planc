@@ -119,7 +119,7 @@ export default async function AuditPage({
         </Button>
       </form>
 
-      <Table>
+      <Table containerLabel="Audit records">
         <Thead>
           <Tr>
             <Th>When</Th>
