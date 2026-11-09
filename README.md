@@ -50,6 +50,11 @@ pnpm dev:storefront         # http://localhost:3001
 pnpm dev:admin              # http://localhost:3002
 ```
 
+For admin frontend work without Supabase or a database, open
+`http://localhost:3002/demo`. This development-only preview uses fictional,
+read-only sample data and shares the real admin shell and UI components.
+Production builds return 404 for `/demo`; real admin routes still require a staff login.
+
 Seeded merchant login: `demo@sellly.app` / `password123` (store: `aria-jewelry`). The seed creates this login in
 Supabase when `SUPABASE_SECRET_KEY` is set, and refuses to run in production. There is no seeded staff
 account; `staff:create` prints a one-time password.

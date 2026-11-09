@@ -36,7 +36,7 @@ export default async function StoresPage({ searchParams }: { searchParams: { q?:
       </div>
 
       <form className="flex flex-wrap gap-2">
-        <Input name="q" defaultValue={q} placeholder="Search name or slug" className="h-9 w-64" aria-label="Search stores" />
+        <Input name="q" defaultValue={q} placeholder="Search name or slug" className="h-9 min-w-0 flex-1 sm:w-64 sm:flex-none" aria-label="Search stores" />
         <Select name="status" defaultValue={status ?? ""} className="h-9 w-auto" aria-label="Status">
           <option value="">All statuses</option>
           <option value="PUBLISHED">Published</option>
@@ -48,15 +48,15 @@ export default async function StoresPage({ searchParams }: { searchParams: { q?:
         </Button>
       </form>
 
-      <Table>
+      <Table containerLabel="Stores records">
         <Thead>
           <Tr>
             <Th>Store</Th>
             <Th>Owner</Th>
             <Th>Status</Th>
             <Th>Plan</Th>
-            <Th>Products</Th>
-            <Th>Orders</Th>
+            <Th className="text-right">Products</Th>
+            <Th className="text-right">Orders</Th>
             <Th>Payments</Th>
             <Th>Web address</Th>
           </Tr>
@@ -94,8 +94,8 @@ export default async function StoresPage({ searchParams }: { searchParams: { q?:
                   {s.subscription?.plan ?? "FREE"}
                   {s.subscription && s.subscription.status !== "ACTIVE" && <p className="text-caption text-warning">{s.subscription.status}</p>}
                 </Td>
-                <Td>{s._count.products}</Td>
-                <Td>{s._count.orders}</Td>
+                <Td className="text-right tabular">{s._count.products}</Td>
+                <Td className="text-right tabular">{s._count.orders}</Td>
                 <Td className={payments.ok ? "" : "text-warning"}>{payments.label}</Td>
                 <Td className="text-muted">{live.custom ? "Own domain" : "Sellly address"}</Td>
               </Tr>

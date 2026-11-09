@@ -35,7 +35,7 @@ export default async function MyAccessPage({ searchParams }: { searchParams: { e
       {requests.length === 0 ? (
         <p className="text-small text-muted">You haven&apos;t requested access to any store. Open a store to request it.</p>
       ) : (
-        <Table>
+        <Table containerLabel="Access records">
           <Thead>
             <Tr>
               <Th>Store</Th>

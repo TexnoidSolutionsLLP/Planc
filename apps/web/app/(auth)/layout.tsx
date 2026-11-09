@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_40%_at_50%_0%,rgba(37,99,235,0.07),transparent_70%)]" aria-hidden="true" />
       <div className="relative w-full max-w-[400px]">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5" aria-label="Sellly home">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand text-[14px] font-bold text-white">S</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-[14px] font-bold text-white">S</span>
           <span className="text-[19px] font-semibold tracking-tight text-primary">Sellly</span>
         </Link>
         <div className="rounded-lg border border-border bg-surface p-7 shadow-sm sm:p-8">{children}</div>

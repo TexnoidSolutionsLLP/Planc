@@ -58,9 +58,9 @@ const preset: Partial<Config> = {
       borderRadius: {
         sm: "6px",
         DEFAULT: "8px",
-        md: "12px",
-        lg: "16px",
-        xl: "20px",
+        md: "10px",
+        lg: "12px",
+        xl: "16px",
       },
       boxShadow: {
         sm: "var(--shadow-sm)",

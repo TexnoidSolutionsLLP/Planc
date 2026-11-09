@@ -33,12 +33,12 @@ export function DashboardPreview() {
       <div className="flex">
         <div className="hidden w-44 shrink-0 border-r border-border p-3 md:block">
           <div className="mb-4 flex items-center gap-2 px-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-brand text-[11px] font-bold text-white">S</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand text-[11px] font-bold text-white">S</span>
             <span className="text-[13px] font-semibold text-primary">Sellly</span>
           </div>
           <ul className="space-y-0.5">
             {nav.map(({ Icon, label, active }) => (
-              <li key={label} className={`flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[12.5px] font-medium ${active ? "bg-secondary text-primary" : "text-muted"}`}>
+              <li key={label} className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium ${active ? "bg-secondary text-primary" : "text-muted"}`}>
                 <Icon className={`h-4 w-4 ${active ? "text-brand" : ""}`} />
                 {label}
               </li>
