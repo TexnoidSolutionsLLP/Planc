@@ -243,10 +243,10 @@ export function DashboardShell({ store, stores, user, recentOrders, newOrderCoun
   const pathname = usePathname();
   return (
     <TooltipProvider delayDuration={0}>
-      <SidebarProvider>
+      <SidebarProvider className="h-svh min-h-0 overflow-hidden">
         <AppSidebar store={store} stores={stores} user={user} pendingAccessCount={pendingAccessCount} />
-        <SidebarInset className="bg-background">
-          <header className="flex h-14 shrink-0 items-center gap-3 px-4 sm:px-6">
+        <SidebarInset className="h-svh min-h-0 overflow-y-auto overscroll-contain bg-background">
+          <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur sm:px-6">
             <SidebarTrigger className="-ml-1 text-muted" />
             <Separator orientation="vertical" className="h-5" />
             <Breadcrumb className="hidden md:block">
