@@ -41,6 +41,7 @@
     "@sellly/analytics": "workspace:*",
     "@sellly/auth": "workspace:*",
     "@sellly/database": "workspace:*",
+    "@sellly/domains": "workspace:*",
     "@sellly/notifications": "workspace:*",
     "@sellly/payments": "workspace:*",
     "@sellly/rate-limit": "workspace:*",

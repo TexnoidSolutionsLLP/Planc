@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@sellly/database";
+import { storeUrl } from "@sellly/domains";
 import { requireStore, requireUser } from "@/lib/session";
 import { DashboardShell } from "./_components/dashboard-shell";
 
@@ -35,7 +36,7 @@ export default async function DashboardLayout({
         createdAt: o.createdAt.toISOString(),
       }))}
       newOrderCount={newOrderCount}
-      storefrontUrl={process.env.STOREFRONT_URL ?? "http://localhost:3001"}
+      storeUrl={storeUrl(store.slug)}
       pendingAccessCount={pendingAccessCount}
     >
       {store.status === "SUSPENDED" && (

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@sellly/database": "workspace:*",
+    "@sellly/domains": "workspace:*",
     "@sellly/payments": "workspace:*",
     "@sellly/shipping": "workspace:*",
     "@sellly/notifications": "workspace:*",

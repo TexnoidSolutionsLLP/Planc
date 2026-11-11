@@ -6,7 +6,7 @@ const nextConfig = {
       "/**": ["../../node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/**"],
     },
   },
-  transpilePackages: ["@sellly/ui", "@sellly/auth", "@sellly/database", "@sellly/storage", "@sellly/rate-limit"],
+  transpilePackages: ["@sellly/ui", "@sellly/auth", "@sellly/database", "@sellly/domains", "@sellly/storage", "@sellly/rate-limit"],
   async headers() {
     // The admin app is internal: keep it out of search engines and frames.
     return [

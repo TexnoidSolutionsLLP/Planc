@@ -20,6 +20,9 @@ importers:
       '@sellly/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@sellly/domains':
+        specifier: workspace:*
+        version: link:../../packages/domains
       '@sellly/rate-limit':
         specifier: workspace:^
         version: link:../../packages/rate-limit
@@ -72,6 +75,9 @@ importers:
       '@sellly/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@sellly/domains':
+        specifier: workspace:*
+        version: link:../../packages/domains
       '@sellly/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
@@ -223,6 +229,9 @@ importers:
       '@sellly/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@sellly/domains':
+        specifier: workspace:*
+        version: link:../../packages/domains
       '@sellly/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
@@ -389,6 +398,15 @@ importers:
       tsx:
         specifier: ^4.19.0
         version: 4.23.15
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  packages/domains:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.16.0
+        version: 20.19.43
       typescript:
         specifier: ^5.6.0
         version: 5.9.3

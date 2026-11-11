@@ -1,4 +1,5 @@
 import { prisma } from "@sellly/database";
+import { customDomainTarget, storeAddress } from "@sellly/domains";
 import { Badge, Card, CardHeader, CardTitle } from "@sellly/ui";
 import { requireStore } from "@/lib/session";
 import { AddDomainForm } from "./_components/add-domain-form";
@@ -8,7 +9,6 @@ export default async function DomainPage({ params }: { params: { store: string }
   const { store } = await requireStore(params.store);
   const domains = await prisma.domain.findMany({ where: { storeId: store.id }, orderBy: { createdAt: "asc" } });
 
-  const subdomain = domains.find((d) => d.isSubdomain);
   const customDomains = domains.filter((d) => !d.isSubdomain);
 
   return (
@@ -20,10 +20,10 @@ export default async function DomainPage({ params }: { params: { store: string }
 
       <Card>
         <CardHeader>
-          <CardTitle>Sellly subdomain</CardTitle>
+          <CardTitle>Free store address</CardTitle>
         </CardHeader>
         <div className="flex items-center justify-between">
-          <p className="text-body text-primary">{subdomain?.hostname ?? store.slug}.sellly.app</p>
+          <p className="text-body text-primary">{storeAddress(store.slug)}</p>
           <Badge variant="success">Always active</Badge>
         </div>
       </Card>
@@ -40,7 +40,7 @@ export default async function DomainPage({ params }: { params: { store: string }
         {customDomains.length > 0 && (
           <ul className="mb-4 space-y-3">
             {customDomains.map((d) => (
-              <DomainRow key={d.id} storeSlug={store.slug} domain={d} />
+              <DomainRow key={d.id} storeSlug={store.slug} domain={d} cnameTarget={customDomainTarget()} />
             ))}
           </ul>
         )}

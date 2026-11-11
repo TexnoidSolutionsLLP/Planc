@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma, type Prisma } from "@sellly/database";
 import { getTemplate, templateSections } from "@sellly/theme";
+import { isReservedStoreSlug, slugifyStoreName, storeAddress } from "@sellly/domains";
 import { requireUser } from "@/lib/session";
 
 function slugify(input: string) {
@@ -11,6 +12,13 @@ function slugify(input: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+/** A store's slug is its subdomain, so it must be DNS-safe and not one of our own names (admin, app, www...). */
+function storeSlugBase(name: string) {
+  const slug = slugifyStoreName(name);
+  if (!slug) return "my-store";
+  return isReservedStoreSlug(slug) ? `${slug}-store` : slug;
 }
 
 function isCode(err: unknown, code: string) {
@@ -61,7 +69,7 @@ async function withUniqueSlug<T>(base: string, attempt: (slug: string) => Promis
 export async function createStoreAction(name: string, category: string) {
   const { userId } = await requireUser();
 
-  const store = await withUniqueSlug(slugify(name), (slug) =>
+  const store = await withUniqueSlug(storeSlugBase(name), (slug) =>
     prisma.store.create({
       data: {
         name,
@@ -77,7 +85,7 @@ export async function createStoreAction(name: string, category: string) {
     }),
   );
 
-  return { storeId: store.id, slug: store.slug };
+  return { storeId: store.id, slug: store.slug, address: storeAddress(store.slug) };
 }
 
 export async function addFirstProductAction(storeId: string, data: { name: string; price: number; description?: string }) {

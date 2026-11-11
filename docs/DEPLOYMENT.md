@@ -116,7 +116,7 @@ pointing at a separate Supabase project).
 | `SUPABASE_STORAGE_BUCKET` (optional) | ✓ | | ✓ |
 | `APP_URL` | ✓ | | |
 | `STOREFRONT_URL` | ✓ | | ✓ |
-| `STOREFRONT_ROOT_DOMAINS` | | ✓ | |
+| `STOREFRONT_DOMAIN` (once you have a store domain) | ✓ | ✓ | ✓ |
 | `ENCRYPTION_KEY` (same value in both) | ✓ | ✓ | |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (optional) | ✓ | | |
 | `RESEND_API_KEY`, `NOTIFICATIONS_FROM_EMAIL` (optional) | ✓ | ✓ | |
@@ -135,14 +135,31 @@ protection) as an extra lock in front of the staff login.
 ## 4. Domains
 
 - On `*.vercel.app` everything works, but stores are reached by path:
-  `https://YOUR-STOREFRONT.vercel.app/store-slug`.
-- For store subdomains (`store-slug.yourdomain.com`): add `yourdomain.com` and
-  `*.yourdomain.com` to the storefront project (**Settings → Domains**; wildcard
-  domains require Vercel's nameservers), then set
-  `STOREFRONT_ROOT_DOMAINS=yourdomain.com` and redeploy.
-- Merchants' own custom domains (e.g. `shop.theirbrand.com`) are **not yet
-  routed** by the storefront: its middleware only understands subdomains of the
-  root domain. This needs a code change before custom domains can go live.
+  `https://YOUR-STOREFRONT.vercel.app/store-slug`. Vercel doesn't allow
+  subdomains under a `vercel.app` address, so this is the only option there.
+- For store subdomains (`store-slug.yourstoredomain.com`):
+  1. Point the domain's nameservers at Vercel (`ns1.vercel-dns.com`,
+     `ns2.vercel-dns.com`) — automatic if it was bought through Vercel.
+     Wildcard domains only work with Vercel's nameservers.
+  2. In the storefront project (**Settings → Domains**) add
+     `yourstoredomain.com` and `*.yourstoredomain.com`.
+  3. Set `STOREFRONT_DOMAIN=yourstoredomain.com` in **all three** projects
+     and redeploy them. Every "View store" link, the Domain page and onboarding
+     then show `store-slug.yourstoredomain.com`; the `vercel.app` path keeps
+     working too.
+- Use a domain just for stores (like Shopify's `myshopify.com`) rather than
+  the company's main domain: store pages are merchant content, and keeping them
+  off the main domain protects its cookies, email reputation and DNS.
+- The merchant and admin apps can sit on the company domain with a plain CNAME
+  each (e.g. `app.yourcompany.com`, `admin.yourcompany.com`) — no nameserver
+  change needed for those.
+- Store names that clash with our own subdomains (`www`, `app`, `admin`,
+  `api`, ...) are refused at sign-up and get `-store` added; the list is
+  `RESERVED_STORE_SLUGS` in `packages/domains`.
+- The storefront answers only its own addresses: any other host gets a 404.
+  Merchants' own custom domains (e.g. `shop.theirbrand.com`) are **not yet
+  routed**, so they 404 too — that needs a code change before custom domains
+  can go live.
 
 ## 5. Every later release
 

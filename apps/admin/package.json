@@ -12,6 +12,7 @@
   "dependencies": {
     "@sellly/auth": "workspace:*",
     "@sellly/database": "workspace:*",
+    "@sellly/domains": "workspace:*",
     "@sellly/rate-limit": "workspace:^",
     "@sellly/storage": "workspace:^",
     "@sellly/ui": "workspace:*",

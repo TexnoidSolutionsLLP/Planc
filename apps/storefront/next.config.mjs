@@ -9,6 +9,7 @@ const nextConfig = {
   transpilePackages: [
     "@sellly/ui",
     "@sellly/database",
+    "@sellly/domains",
     "@sellly/payments",
     "@sellly/shipping",
     "@sellly/notifications",

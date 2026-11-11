@@ -8,7 +8,7 @@ import type { Domain } from "@sellly/database";
 
 const STATUS_VARIANT = { PENDING: "warning", VERIFIED: "success", FAILED: "error" } as const;
 
-export function DomainRow({ storeSlug, domain }: { storeSlug: string; domain: Domain }) {
+export function DomainRow({ storeSlug, domain, cnameTarget }: { storeSlug: string; domain: Domain; cnameTarget: string }) {
   const [pending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(domain.status !== "VERIFIED");
   const [result, setResult] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function DomainRow({ storeSlug, domain }: { storeSlug: string; domain: Do
             action={removeDomainAction.bind(null, storeSlug, domain.id)}
             triggerLabel="Remove"
             title={`Remove ${domain.hostname}?`}
-            description="Your store stays available on its Sellly subdomain. You can reconnect this domain later."
+            description="Your store stays available on its free store address. You can reconnect this domain later."
             confirmLabel="Remove domain"
           />
         </div>
@@ -55,7 +55,7 @@ export function DomainRow({ storeSlug, domain }: { storeSlug: string; domain: Do
       {expanded && (
         <div className="mt-3 space-y-2 rounded-sm bg-secondary/60 p-3 text-caption text-muted">
           <p className="font-medium text-primary">1. Point your domain at Sellly</p>
-          <p>Add a CNAME record: <code className="rounded bg-surface px-1">{domain.hostname}</code> → <code className="rounded bg-surface px-1">stores.sellly.app</code></p>
+          <p>Add a CNAME record: <code className="rounded bg-surface px-1">{domain.hostname}</code> → <code className="rounded bg-surface px-1">{cnameTarget}</code></p>
           <p className="font-medium text-primary">2. Verify ownership</p>
           <p>
             Add a TXT record: <code className="rounded bg-surface px-1">_sellly-verify.{domain.hostname}</code> with value{" "}

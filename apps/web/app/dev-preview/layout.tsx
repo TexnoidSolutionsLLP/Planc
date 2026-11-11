@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { storeUrl } from "@sellly/domains";
 import { DashboardShell } from "../[store]/_components/dashboard-shell";
 import { DEMO_ORDERS, DEMO_STORE } from "./fixtures";
 
@@ -23,7 +24,7 @@ export default function DevPreviewLayout({ children }: { children: React.ReactNo
         createdAt: o.createdAt.toISOString(),
       }))}
       newOrderCount={2}
-      storefrontUrl="http://localhost:3001"
+      storeUrl={storeUrl(DEMO_STORE.slug)}
     >
       <p className="mb-6 text-small text-muted" role="note">
         <strong className="font-medium text-primary">UI preview.</strong> Sample data only; changes are turned off.

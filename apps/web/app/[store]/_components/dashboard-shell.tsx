@@ -66,7 +66,8 @@ interface ShellProps {
   user: { name: string; email: string };
   recentOrders: { id: string; orderNumber: number; customerName: string; status: string; total: number; createdAt: string }[];
   newOrderCount: number;
-  storefrontUrl: string;
+  /** The store's public address, for the "View store" link. */
+  storeUrl: string;
   /** Staff access requests waiting for the owner's decision (0 for non-owners). */
   pendingAccessCount?: number;
   children: React.ReactNode;
@@ -239,7 +240,7 @@ function AppSidebar({
   );
 }
 
-export function DashboardShell({ store, stores, user, recentOrders, newOrderCount, storefrontUrl, pendingAccessCount, children }: ShellProps) {
+export function DashboardShell({ store, stores, user, recentOrders, newOrderCount, storeUrl, pendingAccessCount, children }: ShellProps) {
   const pathname = usePathname();
   return (
     <TooltipProvider delayDuration={0}>
@@ -273,7 +274,7 @@ export function DashboardShell({ store, stores, user, recentOrders, newOrderCoun
               )}
 
               <Button asChild variant="ghost" className="hidden text-muted md:inline-flex">
-                <a href={`${storefrontUrl}/${store.slug}`} target="_blank" rel="noreferrer">
+                <a href={storeUrl} target="_blank" rel="noreferrer">
                   View store <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </Button>

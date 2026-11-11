@@ -1,4 +1,5 @@
 import { prisma } from "@sellly/database";
+import { storeUrl } from "@sellly/domains";
 import { getTemplate, normalizeThemeConfig } from "@sellly/theme";
 import { Badge, Card, CardHeader, CardTitle } from "@sellly/ui";
 import { requireStore } from "@/lib/session";
@@ -12,8 +13,7 @@ export default async function OnlineStorePage({ params }: { params: { store: str
   const config = normalizeThemeConfig(theme?.config);
   const template = getTemplate(theme?.baseTheme ?? theme?.name);
 
-  const storefrontUrl = process.env.STOREFRONT_URL ?? "http://localhost:3001";
-  const previewUrl = `${storefrontUrl}/${store.slug}`;
+  const previewUrl = storeUrl(store.slug);
 
   return (
     <div className="space-y-6">

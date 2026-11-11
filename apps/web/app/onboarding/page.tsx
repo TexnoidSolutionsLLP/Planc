@@ -20,7 +20,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [storeId, setStoreId] = useState<string | null>(null);
-  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [storeAddress, setStoreAddress] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [productName, setProductName] = useState("");
@@ -45,9 +45,9 @@ export default function OnboardingPage() {
   function handleCreateStore() {
     startTransition(async () => {
       try {
-        const { storeId, slug } = await createStoreAction(name, category);
+        const { storeId, address } = await createStoreAction(name, category);
         setStoreId(storeId);
-        setStoreSlug(slug);
+        setStoreAddress(address);
         next();
       } catch {
         setError("Something went wrong. Try again.");
@@ -206,7 +206,7 @@ export default function OnboardingPage() {
           <div className="space-y-4 text-center">
             <h1 className="text-h3 text-primary">You&apos;re ready to publish</h1>
             <p className="text-body text-muted">
-              Your store {storeSlug ? <span className="font-medium text-primary">sellly.app/{storeSlug}</span> : ""} will go
+              Your store {storeAddress ? <span className="font-medium text-primary">{storeAddress}</span> : ""} will go
               live. Share the link on Instagram or WhatsApp to start selling.
             </p>
             <Button className="w-full" onClick={handlePublish} disabled={pending}>

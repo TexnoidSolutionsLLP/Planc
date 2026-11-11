@@ -1,4 +1,5 @@
 import { prisma } from "@sellly/database";
+import { storeUrl as storeUrlFor } from "@sellly/domains";
 import { getConversionFunnel, getRevenueByDay, getStoreOverview, getTopProducts } from "@sellly/analytics";
 import { requireStore, requireUser } from "@/lib/session";
 import { OverviewView } from "./overview-view";
@@ -37,8 +38,7 @@ export default async function OverviewPage({
   ]);
 
   const orderCount = await prisma.order.count({ where: { storeId: store.id } });
-  const storefrontUrl = process.env.STOREFRONT_URL ?? "http://localhost:3001";
-  const storeUrl = `${storefrontUrl}/${store.slug}`;
+  const storeUrl = storeUrlFor(store.slug);
   const firstName = (user.name ?? user.email.split("@")[0]).split(" ")[0];
 
   const checklist = [

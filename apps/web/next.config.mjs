@@ -10,6 +10,7 @@ const nextConfig = {
     "@sellly/ui",
     "@sellly/auth",
     "@sellly/database",
+    "@sellly/domains",
     "@sellly/payments",
     "@sellly/shipping",
     "@sellly/notifications",

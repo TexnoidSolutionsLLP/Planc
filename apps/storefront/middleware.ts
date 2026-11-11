@@ -1,34 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// The storefront's own domain(s), comma-separated — e.g. "mystore.com". A request
-// for <slug>.<root domain> is served as that store; the root domain itself
-// (and *.vercel.app, which can't have per-store subdomains) is served by path.
-const ROOT_DOMAINS = [
-  ...(process.env.STOREFRONT_ROOT_DOMAINS ?? "sellly.app").split(",").map((d) => d.trim()).filter(Boolean),
-  "localhost:3001",
-  "localhost",
-];
+import { resolveStoreHost } from "@sellly/domains";
 
 /**
- * Resolves store-name.sellly.app → /store-name/... internally, so every page
- * lives at app/[store]/... and can also be hit directly by path in dev
- * (localhost:3001/store-name) without needing wildcard DNS locally.
+ * Serves <slug>.<STOREFRONT_DOMAIN> as that store by rewriting it to
+ * /<slug>/... internally, so every page lives at app/[store]/... The
+ * storefront's own address (*.vercel.app, localhost, the bare domain) is served
+ * by path instead: sellly-storefront.vercel.app/<slug>.
+ *
+ * Any other host is refused rather than guessed at. Merchants' own custom
+ * domains aren't routed yet, so they land here too.
  */
 export function middleware(req: NextRequest) {
-  const host = req.headers.get("host") ?? "";
-  const isRootDomain = ROOT_DOMAINS.some((d) => host === d || host.endsWith(`.vercel.app`));
+  const target = resolveStoreHost(req.headers.get("host") ?? "");
 
-  if (isRootDomain) return NextResponse.next();
+  if (target.kind === "root") return NextResponse.next();
+  if (target.kind === "unknown") return new NextResponse("Store not found", { status: 404 });
 
-  const subdomain = host.split(".")[0];
   const url = req.nextUrl.clone();
+  const prefix = `/${target.slug}`;
 
-  if (!url.pathname.startsWith(`/${subdomain}`)) {
-    url.pathname = `/${subdomain}${url.pathname === "/" ? "" : url.pathname}`;
-    return NextResponse.rewrite(url);
-  }
+  // Pages link to /<slug>/..., so those already carry the store.
+  if (url.pathname === prefix || url.pathname.startsWith(`${prefix}/`)) return NextResponse.next();
 
-  return NextResponse.next();
+  url.pathname = `${prefix}${url.pathname === "/" ? "" : url.pathname}`;
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
