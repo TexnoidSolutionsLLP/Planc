@@ -100,7 +100,7 @@ export function demoOverview(days: number): OverviewViewProps {
     store: DEMO_STORE,
     firstName: "Priya",
     days,
-    storeUrl: "https://sellly.app/dev-preview",
+    storeUrl: "https://dev-preview.zelyfi.com",
     current: { revenue: 48250, orders: 36, customers: 21, averageOrderValue: 1340 },
     previous: { revenue: 39100, orders: 31, customers: 18, averageOrderValue: 1261 },
     topProducts: [

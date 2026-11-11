@@ -3,9 +3,9 @@
  *
  * - `STOREFRONT_DOMAIN` unset (e.g. while on *.vercel.app): stores are reached
  *   by path — `${STOREFRONT_URL}/<slug>`.
- * - `STOREFRONT_DOMAIN="texnoidstores.com"`: stores are reached by subdomain —
- *   `https://<slug>.texnoidstores.com`. The storefront project needs the
- *   wildcard `*.texnoidstores.com` added in Vercel for this to resolve.
+ * - `STOREFRONT_DOMAIN="zelyfi.com"`: stores are reached by subdomain —
+ *   `https://<slug>.zelyfi.com`. The storefront project needs the wildcard
+ *   `*.zelyfi.com` added in Vercel for this to resolve.
  *
  * No dependencies, so the storefront's edge middleware can import it.
  */
@@ -29,7 +29,7 @@ export const RESERVED_STORE_SLUGS: ReadonlySet<string> = new Set([
   "cdn", "static", "assets", "media", "files", "images", "img",
   "dev", "test", "staging", "preview", "demo", "beta", "sandbox",
   "store", "stores", "shop", "shops", "merchant", "merchants", "seller", "sellers",
-  "sellly", "texnoid",
+  "sellly", "texnoid", "zelyfi",
 ]);
 
 const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
@@ -76,7 +76,7 @@ export function storeUrl(slug: string): string {
   return domain ? `https://${slug}.${domain}` : `${storefrontBaseUrl()}/${slug}`;
 }
 
-/** A URL without its scheme, for showing to people: "aria-jewelry.texnoidstores.com". */
+/** A URL without its scheme, for showing to people: "aria-jewelry.zelyfi.com". */
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\//, "");
 }

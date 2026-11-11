@@ -29,7 +29,7 @@ const emailChannel: NotificationChannel = {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: process.env.NOTIFICATIONS_FROM_EMAIL ?? "orders@sellly.app",
+        from: process.env.NOTIFICATIONS_FROM_EMAIL ?? "orders@zelyfi.com",
         to: recipient,
         subject: message.subject,
         html: message.html,

@@ -134,28 +134,48 @@ protection) as an extra lock in front of the staff login.
 
 ## 4. Domains
 
-- On `*.vercel.app` everything works, but stores are reached by path:
-  `https://YOUR-STOREFRONT.vercel.app/store-slug`. Vercel doesn't allow
-  subdomains under a `vercel.app` address, so this is the only option there.
-- For store subdomains (`store-slug.yourstoredomain.com`):
-  1. Point the domain's nameservers at Vercel (`ns1.vercel-dns.com`,
-     `ns2.vercel-dns.com`) — automatic if it was bought through Vercel.
-     Wildcard domains only work with Vercel's nameservers.
-  2. In the storefront project (**Settings → Domains**) add
-     `yourstoredomain.com` and `*.yourstoredomain.com`.
-  3. Set `STOREFRONT_DOMAIN=yourstoredomain.com` in **all three** projects
-     and redeploy them. Every "View store" link, the Domain page and onboarding
-     then show `store-slug.yourstoredomain.com`; the `vercel.app` path keeps
-     working too.
-- Use a domain just for stores (like Shopify's `myshopify.com`) rather than
-  the company's main domain: store pages are merchant content, and keeping them
-  off the main domain protects its cookies, email reputation and DNS.
-- The merchant and admin apps can sit on the company domain with a plain CNAME
-  each (e.g. `app.yourcompany.com`, `admin.yourcompany.com`) — no nameserver
-  change needed for those.
-- Store names that clash with our own subdomains (`www`, `app`, `admin`,
-  `api`, ...) are refused at sign-up and get `-store` added; the list is
-  `RESERVED_STORE_SLUGS` in `packages/domains`.
+Production runs on **zelyfi.com** (registered at Hostinger, DNS on Vercel):
+
+| Address | Vercel project | What it is |
+|---|---|---|
+| `zelyfi.com`, `www.zelyfi.com` | web | Landing page, merchant sign-up, login and dashboard |
+| `admin.zelyfi.com` | admin | Staff console |
+| `<store>.zelyfi.com` (wildcard `*.zelyfi.com`) | storefront | Every store, e.g. `aria-jewelry.zelyfi.com` |
+
+Vercel sends `www.` and `admin.` to their own projects because an exact domain
+always wins over the wildcard. Store names that clash with our own
+subdomains (`www`, `app`, `admin`, `api`, ...) are refused at sign-up and get
+`-store` added; the list is `RESERVED_STORE_SLUGS` in `packages/domains`.
+
+### Connect zelyfi.com (once)
+
+1. **Hand DNS to Vercel.** Wildcard domains only work with Vercel's
+   nameservers. In Hostinger hPanel: **Domains → zelyfi.com → DNS / Nameservers
+   → Change nameservers → "Use custom nameservers"**, enter
+   `ns1.vercel-dns.com` and `ns2.vercel-dns.com`, save. If anything else uses
+   zelyfi.com (e.g. Hostinger email), recreate its records — MX, SPF, DKIM — in
+   Vercel (**Domains → zelyfi.com → DNS Records**) first.
+2. **Add the domains to the projects** (**Settings → Domains → Add**):
+   - storefront: `*.zelyfi.com`
+   - web: `zelyfi.com` and `www.zelyfi.com` (redirect one to the other)
+   - admin: `admin.zelyfi.com`
+   With Vercel's nameservers the DNS records and HTTPS certificates are
+   created automatically; it can take from minutes to a few hours.
+3. **Set the environment variables** (Production), then redeploy all three:
+   - all three projects: `STOREFRONT_DOMAIN=zelyfi.com`
+   - web: `APP_URL=https://zelyfi.com`
+4. **Supabase → Authentication → URL Configuration:** Site URL
+   `https://zelyfi.com`; add `https://zelyfi.com/**` to Redirect URLs, so
+   sign-up and password-reset emails link to the new address.
+5. **Email (optional):** to send order emails from `orders@zelyfi.com`, add
+   zelyfi.com in Resend and copy the records it gives into Vercel DNS.
+
+The `*.vercel.app` addresses keep working throughout; stores are reached there
+by path (`https://YOUR-STOREFRONT.vercel.app/store-slug`), since Vercel doesn't
+allow subdomains under a `vercel.app` address.
+
+### Notes
+
 - The storefront answers only its own addresses: any other host gets a 404.
   Merchants' own custom domains (e.g. `shop.theirbrand.com`) are **not yet
   routed**, so they 404 too — that needs a code change before custom domains

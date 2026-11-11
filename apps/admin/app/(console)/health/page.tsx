@@ -94,7 +94,8 @@ export default async function HealthPage() {
     deliveryCheck("whatsapp", "WhatsApp messages (Meta Cloud API)", ["WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID"]),
   ]);
   const config = [
-    configCheck("Storefront link", ["STOREFRONT_URL"], "Used for store links on this page"),
+    configCheck("Storefront link", ["STOREFRONT_URL"], "Used for store links while store subdomains are off"),
+    configCheck("Store subdomains", ["STOREFRONT_DOMAIN"], "Stores get <store>.zelyfi.com addresses when this is set"),
     configCheck("Rate limiting", [], "In-memory per server instance — limits aren't shared across Vercel instances"),
   ];
 

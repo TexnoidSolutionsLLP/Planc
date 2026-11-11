@@ -18,22 +18,22 @@ describe("storeUrl", () => {
   });
 
   it("uses a subdomain once a store domain is set", () => {
-    vi.stubEnv("STOREFRONT_DOMAIN", " https://*.TexnoidStores.com/ ");
-    expect(storeUrl("aria-jewelry")).toBe("https://aria-jewelry.texnoidstores.com");
-    expect(storeAddress("aot")).toBe("aot.texnoidstores.com");
+    vi.stubEnv("STOREFRONT_DOMAIN", " https://*.Zelyfi.com/ ");
+    expect(storeUrl("aria-jewelry")).toBe("https://aria-jewelry.zelyfi.com");
+    expect(storeAddress("aot")).toBe("aot.zelyfi.com");
   });
 });
 
 describe("resolveStoreHost", () => {
-  const domain = "texnoidstores.com";
+  const domain = "zelyfi.com";
 
   it("serves a store from its subdomain", () => {
-    expect(resolveStoreHost("aria-jewelry.texnoidstores.com", domain)).toEqual({ kind: "store", slug: "aria-jewelry" });
-    expect(resolveStoreHost("AOT.TexnoidStores.com:443", domain)).toEqual({ kind: "store", slug: "aot" });
+    expect(resolveStoreHost("aria-jewelry.zelyfi.com", domain)).toEqual({ kind: "store", slug: "aria-jewelry" });
+    expect(resolveStoreHost("AOT.Zelyfi.com:443", domain)).toEqual({ kind: "store", slug: "aot" });
   });
 
   it("treats the storefront's own addresses as path-style", () => {
-    for (const host of ["texnoidstores.com", "www.texnoidstores.com", "sellly-storefront.vercel.app", "localhost:3001"]) {
+    for (const host of ["zelyfi.com", "www.zelyfi.com", "sellly-storefront.vercel.app", "localhost:3001"]) {
       expect(resolveStoreHost(host, domain)).toEqual({ kind: "root" });
     }
     expect(resolveStoreHost("sellly-storefront.vercel.app", null)).toEqual({ kind: "root" });
@@ -44,7 +44,7 @@ describe("resolveStoreHost", () => {
   });
 
   it("rejects reserved names, nested subdomains and unrelated hosts", () => {
-    for (const host of ["admin.texnoidstores.com", "a.b.texnoidstores.com", "shop.theirbrand.com", "eviltexnoidstores.com", ""]) {
+    for (const host of ["admin.zelyfi.com", "a.b.zelyfi.com", "shop.theirbrand.com", "evilzelyfi.com", ""]) {
       expect(resolveStoreHost(host, domain)).toEqual({ kind: "unknown" });
     }
     expect(resolveStoreHost("aot.example.com", null)).toEqual({ kind: "unknown" });
