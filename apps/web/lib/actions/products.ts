@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { redirect } from "next/navigation";
 import { getTenantDb, prisma, writeAuditLog } from "@sellly/database";
 import { requireStore } from "@/lib/session";
@@ -63,6 +64,7 @@ export async function createProductAction(storeSlug: string, _prev: FormState, f
   await writeAuditLog({ storeId: store.id, userId, action: "product.created", entity: "product", entityId: product.id });
 
   revalidatePath(`/${storeSlug}/products`);
+  await refreshStorefront(storeSlug);
   redirect(`/${storeSlug}/products`);
 }
 
@@ -102,6 +104,7 @@ export async function updateProductAction(storeSlug: string, productId: string, 
   await writeAuditLog({ storeId: store.id, userId, action: "product.updated", entity: "product", entityId: productId });
 
   revalidatePath(`/${storeSlug}/products`);
+  await refreshStorefront(storeSlug);
   redirect(`/${storeSlug}/products`);
 }
 
@@ -111,6 +114,7 @@ export async function deleteProductAction(storeSlug: string, productId: string) 
   await db.product.delete(productId);
   await writeAuditLog({ storeId: store.id, userId, action: "product.deleted", entity: "product", entityId: productId });
   revalidatePath(`/${storeSlug}/products`);
+  await refreshStorefront(storeSlug);
 }
 
 export async function bulkUpdateStatusAction(storeSlug: string, productIds: string[], status: "ACTIVE" | "DRAFT" | "ARCHIVED") {
@@ -119,4 +123,5 @@ export async function bulkUpdateStatusAction(storeSlug: string, productIds: stri
   await Promise.all(productIds.map((id) => db.product.update(id, { status })));
   await writeAuditLog({ storeId: store.id, userId, action: "product.bulk_status", metadata: { productIds, status } });
   revalidatePath(`/${storeSlug}/products`);
+  await refreshStorefront(storeSlug);
 }

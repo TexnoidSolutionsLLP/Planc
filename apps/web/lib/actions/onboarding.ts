@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma, type Prisma } from "@sellly/database";
 import { getTemplate, templateSections } from "@sellly/theme";
-import { isReservedStoreSlug, slugifyStoreName, storeAddress } from "@sellly/domains";
+import { isReservedStoreSlug, refreshStorefront, slugifyStoreName, storeAddress } from "@sellly/domains";
 import { requireUser } from "@/lib/session";
 
 function slugify(input: string) {
@@ -129,5 +129,6 @@ export async function publishStoreAction(storeId: string) {
     where: { id: storeId },
     data: { status: "PUBLISHED", publishedAt: new Date(), onboardingStep: null },
   });
+  await refreshStorefront(store.slug);
   redirect(`/${store.slug}/overview?published=1`);
 }

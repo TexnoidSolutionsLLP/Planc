@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { CardAspect, CardConfig } from "@sellly/theme";
+import { StoreImage } from "./store-image";
 
 export interface ProductCardProps {
   storeSlug: string;
@@ -67,8 +68,8 @@ export function ProductCard({
           {name}
         </span>
         <span className="flex items-center gap-4">
-          <span className="hidden h-14 w-20 overflow-hidden rounded-sm bg-secondary md:block">
-            {imageUrl && <img src={imageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
+          <span className="relative hidden h-14 w-20 overflow-hidden rounded-sm bg-secondary md:block">
+            {imageUrl && <StoreImage src={imageUrl} alt="" sizes="80px" className="object-cover" />}
           </span>
           {card.showPrice ? (
             <span className="text-small text-muted">₹{price.toLocaleString("en-IN")}</span>
@@ -84,7 +85,7 @@ export function ProductCard({
     return (
       <Link href={href} className="group block">
         <div className={`relative overflow-hidden rounded-md bg-secondary ${aspect}`}>
-          {imageUrl && <img src={imageUrl} alt={name} loading="lazy" className={imgClass} />}
+          {imageUrl && <StoreImage src={imageUrl} alt={name} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className={imgClass} />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" aria-hidden="true" />
           <div className="absolute inset-x-0 bottom-0 p-4 text-white">
             <p className="text-small font-medium">{name}</p>
@@ -102,7 +103,7 @@ export function ProductCard({
         className="group block overflow-hidden rounded-md border border-border bg-surface transition-[box-shadow,transform] duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className={`relative overflow-hidden bg-secondary ${aspect}`}>
-          {imageUrl && <img src={imageUrl} alt={name} loading="lazy" className={imgClass} />}
+          {imageUrl && <StoreImage src={imageUrl} alt={name} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className={imgClass} />}
           {saleBadge}
         </div>
         <div className="space-y-0.5 p-3.5">
@@ -116,7 +117,7 @@ export function ProductCard({
   return (
     <Link href={href} className="group block">
       <div className={`relative overflow-hidden rounded-md bg-secondary ${aspect}`}>
-        {imageUrl && <img src={imageUrl} alt={name} loading="lazy" className={imgClass} />}
+        {imageUrl && <StoreImage src={imageUrl} alt={name} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className={imgClass} />}
         {saleBadge}
       </div>
       <div className="mt-3 space-y-0.5">

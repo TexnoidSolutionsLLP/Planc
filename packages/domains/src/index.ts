@@ -34,6 +34,11 @@ export const RESERVED_STORE_SLUGS: ReadonlySet<string> = new Set([
 
 const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 
+/** A well-formed store slug: lowercase letters, digits and inner dashes. */
+export function isValidStoreSlug(slug: string): boolean {
+  return slug.length <= 63 && SLUG_PATTERN.test(slug);
+}
+
 export function isReservedStoreSlug(slug: string): boolean {
   return RESERVED_STORE_SLUGS.has(slug.trim().toLowerCase());
 }
@@ -125,4 +130,29 @@ export function resolveStoreHost(rawHost: string, domain: string | null = storef
   }
 
   return { kind: "unknown" };
+}
+
+/**
+ * Asks the storefront to drop its cached pages for a store, so a merchant's
+ * change (a product, the theme, publishing) shows on the live store straight
+ * away instead of when the cache next expires (about a minute).
+ *
+ * Calls the storefront's /api/revalidate with REVALIDATE_SECRET. Never
+ * throws: if the storefront can't be reached or the secret isn't set, the
+ * change still appears once the cache expires on its own.
+ */
+export async function refreshStorefront(slug: string): Promise<void> {
+  const secret = process.env.REVALIDATE_SECRET;
+  if (!secret || !isValidStoreSlug(slug)) return;
+  try {
+    const res = await fetch(`${storefrontBaseUrl()}/api/revalidate`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
+      body: JSON.stringify({ slug }),
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) console.warn(`Storefront cache refresh for "${slug}" failed: HTTP ${res.status}`);
+  } catch (err) {
+    console.warn(`Storefront cache refresh for "${slug}" failed:`, err instanceof Error ? err.message : err);
+  }
 }

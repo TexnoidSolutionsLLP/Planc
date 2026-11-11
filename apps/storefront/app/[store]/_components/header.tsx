@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShoppingBag, Search } from "lucide-react";
 import type { HeaderVariant } from "@sellly/theme";
 import { useCart } from "@/lib/cart-context";
+import { StoreImage } from "./store-image";
 
 export function StorefrontHeader({
   storeName,
@@ -30,7 +31,9 @@ export function StorefrontHeader({
   const logo = (
     <Link href={`/${storeSlug}`} className="flex items-center gap-2">
       {logoUrl ? (
-        <img src={logoUrl} alt={storeName} className="h-8 w-8 rounded-sm object-cover" />
+        <span className="relative block h-8 w-8 overflow-hidden rounded-sm">
+          <StoreImage src={logoUrl} alt={storeName} sizes="32px" className="object-cover" />
+        </span>
       ) : (
         <span className="sf-heading truncate text-[20px] leading-none text-primary">{storeName}</span>
       )}

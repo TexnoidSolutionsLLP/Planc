@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { prisma, writeAuditLog } from "@sellly/database";
 import type { ThemeConfig } from "@sellly/theme";
 import { requireStore } from "@/lib/session";
@@ -15,6 +16,7 @@ export async function updateThemeConfigAction(storeSlug: string, config: ThemeCo
   await writeAuditLog({ storeId: store.id, userId, action: "theme.updated", entity: "theme", entityId: theme.id });
 
   revalidatePath(`/${storeSlug}/online-store`);
+  await refreshStorefront(storeSlug);
 }
 
 export async function switchThemeAction(storeSlug: string, templateId: string) {
@@ -35,4 +37,5 @@ export async function switchThemeAction(storeSlug: string, templateId: string) {
 
   await writeAuditLog({ storeId: store.id, userId, action: "theme.switched", metadata: { themeName: template.name } });
   revalidatePath(`/${storeSlug}/online-store`);
+  await refreshStorefront(storeSlug);
 }

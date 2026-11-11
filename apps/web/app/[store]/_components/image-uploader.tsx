@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { X, Upload } from "lucide-react";
+import { compressImage } from "@/lib/compress-image";
 
 interface ImageUploaderProps {
   storeSlug: string;
@@ -22,8 +23,11 @@ export function ImageUploader({ storeSlug, value, onChange, max = 6 }: ImageUplo
     setError(null);
     setUploading(true);
 
+    const uploaded: string[] = [];
     try {
-      for (const file of Array.from(files).slice(0, max - value.length)) {
+      for (const original of Array.from(files).slice(0, max - value.length)) {
+        // Resize and re-encode in the browser first: smaller uploads, less storage, faster stores.
+        const file = await compressImage(original);
         const presignRes = await fetch("/api/uploads", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -39,7 +43,10 @@ export function ImageUploader({ storeSlug, value, onChange, max = 6 }: ImageUplo
         });
         if (!putRes.ok) throw new Error("Upload to storage failed");
 
-        onChange([...value, presign.publicUrl]);
+        // Keep a running list: `value` is fixed for this render, so appending to it
+        // per file would drop all but the last image of a multi-file pick.
+        uploaded.push(presign.publicUrl);
+        onChange([...value, ...uploaded]);
       }
     } catch (err: any) {
       setError(err.message ?? "Something went wrong uploading that image");

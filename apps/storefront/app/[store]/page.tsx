@@ -1,5 +1,4 @@
 import { prisma } from "@sellly/database";
-import { trackEvent } from "@sellly/analytics";
 import type { ThemeSection } from "@sellly/theme";
 import { getPublishedStore } from "@/lib/store";
 import { getActiveTemplate } from "@/lib/template";
@@ -10,10 +9,19 @@ import { BannerSection } from "./_components/sections/banner";
 import { TestimonialsSection } from "./_components/sections/testimonials";
 import { FaqSection } from "./_components/sections/faq";
 import { NewsletterSection } from "./_components/sections/newsletter";
+import { PageViewTracker } from "./_components/page-view-tracker";
+
+// Served from cache and rebuilt in the background at most once a minute; a
+// merchant's edits also clear it straight away (see app/api/revalidate).
+export const revalidate = 60;
+
+// Nothing is built ahead of time: each page is built on its first visit, then cached.
+export function generateStaticParams() {
+  return [];
+}
 
 export default async function StoreHomePage({ params }: { params: { store: string } }) {
   const store = await getPublishedStore(params.store);
-  await trackEvent(store.id, "page_view", { page: "home" });
 
   const [{ template, config }, featuredCollection, products] = await Promise.all([
     getActiveTemplate(store.id),
@@ -85,5 +93,10 @@ export default async function StoreHomePage({ params }: { params: { store: strin
     }
   }
 
-  return <div>{config.sections.map(renderSection)}</div>;
+  return (
+    <div>
+      <PageViewTracker storeSlug={store.slug} page="home" />
+      {config.sections.map(renderSection)}
+    </div>
+  );
 }

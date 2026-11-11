@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isReservedStoreSlug, resolveStoreHost, slugifyStoreName, storeAddress, storeUrl } from "./index";
+import { isReservedStoreSlug, isValidStoreSlug, refreshStorefront, resolveStoreHost, slugifyStoreName, storeAddress, storeUrl } from "./index";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -61,5 +61,45 @@ describe("store slugs", () => {
   it("knows reserved names", () => {
     expect(isReservedStoreSlug("Admin")).toBe(true);
     expect(isReservedStoreSlug("aria-jewelry")).toBe(false);
+  });
+});
+
+describe("isValidStoreSlug", () => {
+  it("accepts slugs and rejects paths or odd characters", () => {
+    expect(isValidStoreSlug("aria-jewelry")).toBe(true);
+    for (const bad of ["", "-aria", "Aria", "a/b", "../x", "a".repeat(64)]) expect(isValidStoreSlug(bad)).toBe(false);
+  });
+});
+
+describe("refreshStorefront", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("posts the slug to the storefront with the shared secret", async () => {
+    vi.stubEnv("REVALIDATE_SECRET", "s3cret");
+    vi.stubEnv("STOREFRONT_URL", "https://sellly-storefront.vercel.app");
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await refreshStorefront("aria-jewelry");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://sellly-storefront.vercel.app/api/revalidate");
+    expect(init.headers.authorization).toBe("Bearer s3cret");
+    expect(JSON.parse(init.body)).toEqual({ slug: "aria-jewelry" });
+  });
+
+  it("does nothing without a secret, and never throws", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error("down"));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubEnv("REVALIDATE_SECRET", "");
+    await refreshStorefront("aria-jewelry");
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    vi.stubEnv("REVALIDATE_SECRET", "s3cret");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(refreshStorefront("aria-jewelry")).resolves.toBeUndefined();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

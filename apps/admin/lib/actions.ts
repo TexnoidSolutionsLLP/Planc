@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { redirect } from "next/navigation";
 import {
   AccessError,
@@ -130,6 +131,7 @@ export async function suspendStoreAction(storeId: string, formData: FormData) {
 
   await prisma.store.update({ where: { id: storeId }, data: { status: "SUSPENDED", suspendedAt: new Date(), suspendedReason: reason } });
   await writeAuditLog({ storeId, userId: staff.id, action: "support.store_suspended", entity: "store", entityId: storeId, metadata: { reason, from: store.status, to: "SUSPENDED", grantId: grant.id } });
+  await refreshStorefront(store.slug);
   back(returnTo, "done=suspended");
 }
 
@@ -144,6 +146,7 @@ export async function reactivateStoreAction(storeId: string, formData: FormData)
   const to = store.publishedAt ? "PUBLISHED" : "DRAFT";
   await prisma.store.update({ where: { id: storeId }, data: { status: to, suspendedAt: null, suspendedReason: null } });
   await writeAuditLog({ storeId, userId: staff.id, action: "support.store_reactivated", entity: "store", entityId: storeId, metadata: { from: "SUSPENDED", to, grantId: grant.id } });
+  await refreshStorefront(store.slug);
   back(returnTo, "done=reactivated");
 }
 

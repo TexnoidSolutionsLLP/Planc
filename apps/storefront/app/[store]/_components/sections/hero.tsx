@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HeroVariant } from "@sellly/theme";
+import { StoreImage } from "../store-image";
 
 interface HeroProps {
   storeSlug: string;
@@ -34,8 +35,8 @@ export function HeroSection({ storeSlug, storeName, description, title, ctaLabel
             </Link>
           </div>
           <div className="order-1 md:order-2">
-            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-secondary md:aspect-[4/5]">
-              {imageUrl && <img src={imageUrl} alt="" className="h-full w-full object-cover" />}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-secondary md:aspect-[4/5]">
+              {imageUrl && <StoreImage src={imageUrl} alt="" sizes="(min-width: 768px) 50vw, 100vw" priority className="object-cover" />}
             </div>
           </div>
         </div>
@@ -48,7 +49,7 @@ export function HeroSection({ storeSlug, storeName, description, title, ctaLabel
       <section className={`relative isolate overflow-hidden ${imageUrl ? "text-white" : "bg-primary text-background"}`}>
         {imageUrl && (
           <>
-            <img src={imageUrl} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+            <StoreImage src={imageUrl} alt="" sizes="100vw" priority className="-z-20 object-cover" />
             <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-black/35 to-black/20" aria-hidden="true" />
           </>
         )}

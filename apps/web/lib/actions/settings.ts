@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { prisma, encryptSecret, writeAuditLog } from "@sellly/database";
 import { requireStore } from "@/lib/session";
 
@@ -27,6 +28,7 @@ export async function updateStoreSettingsAction(storeSlug: string, _prev: FormSt
   });
 
   revalidatePath(`/${storeSlug}/settings`);
+  await refreshStorefront(storeSlug);
   return { success: true };
 }
 
@@ -42,6 +44,7 @@ export async function togglePublishAction(storeSlug: string) {
     },
   });
   revalidatePath(`/${storeSlug}/settings`);
+  await refreshStorefront(storeSlug);
 }
 
 export async function toggleWhatsappAction(storeSlug: string) {

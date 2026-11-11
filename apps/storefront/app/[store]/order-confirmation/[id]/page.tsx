@@ -5,6 +5,9 @@ import { prisma } from "@sellly/database";
 import { Card, buttonVariants } from "@sellly/ui";
 import { getPublishedStore } from "@/lib/store";
 
+// Specific to one shopper and order: always rendered fresh, never cached.
+export const dynamic = "force-dynamic";
+
 export default async function OrderConfirmationPage({ params }: { params: { store: string; id: string } }) {
   const store = await getPublishedStore(params.store);
   const order = await prisma.order.findFirst({

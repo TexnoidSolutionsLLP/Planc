@@ -117,6 +117,7 @@ pointing at a separate Supabase project).
 | `APP_URL` | ✓ | | |
 | `STOREFRONT_URL` | ✓ | | ✓ |
 | `STOREFRONT_DOMAIN` (once you have a store domain) | ✓ | ✓ | ✓ |
+| `REVALIDATE_SECRET` (same value in all three) | ✓ | ✓ | ✓ |
 | `ENCRYPTION_KEY` (same value in both) | ✓ | ✓ | |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (optional) | ✓ | | |
 | `RESEND_API_KEY`, `NOTIFICATIONS_FROM_EMAIL` (optional) | ✓ | ✓ | |
@@ -175,6 +176,11 @@ by path (`https://YOUR-STOREFRONT.vercel.app/store-slug`), since Vercel doesn't
 allow subdomains under a `vercel.app` address.
 
 ### Notes
+
+- Store pages (home and product pages) are cached and rebuilt at most once a
+  minute. Merchant and admin changes clear a store's cache at once through the
+  storefront's `/api/revalidate`, which needs the same `REVALIDATE_SECRET` in
+  all three projects; without it, changes still appear within about a minute.
 
 - The storefront answers only its own addresses: any other host gets a 404.
   Merchants' own custom domains (e.g. `shop.theirbrand.com`) are **not yet

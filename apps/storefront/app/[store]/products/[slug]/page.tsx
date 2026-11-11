@@ -1,10 +1,20 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@sellly/database";
-import { trackEvent } from "@sellly/analytics";
 import { getPublishedStore } from "@/lib/store";
 import { getActiveTemplate } from "@/lib/template";
 import { ProductGrid } from "../../_components/sections/product-grid";
 import { AddToCartForm } from "./_components/add-to-cart-form";
+import { StoreImage } from "../../_components/store-image";
+import { PageViewTracker } from "../../_components/page-view-tracker";
+
+// Served from cache and rebuilt in the background at most once a minute; a
+// merchant's edits also clear it straight away (see app/api/revalidate).
+export const revalidate = 60;
+
+// Nothing is built ahead of time: each page is built on its first visit, then cached.
+export function generateStaticParams() {
+  return [];
+}
 
 export default async function ProductPage({ params }: { params: { store: string; slug: string } }) {
   const store = await getPublishedStore(params.store);
@@ -13,7 +23,6 @@ export default async function ProductPage({ params }: { params: { store: string;
     include: { images: { orderBy: { position: "asc" } }, variants: true, options: true },
   });
   if (!product) notFound();
-  await trackEvent(store.id, "page_view", { page: "product", productId: product.id });
 
   const { template } = await getActiveTemplate(store.id);
   const portfolio = template.category === "portfolio";
@@ -30,16 +39,19 @@ export default async function ProductPage({ params }: { params: { store: string;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <PageViewTracker storeSlug={store.slug} page="product" productId={product.id} />
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
         <div className="space-y-3">
-          <div className="aspect-square overflow-hidden rounded-md bg-secondary">
-            {product.images[0] && <img src={product.images[0].url} alt={product.name} className="h-full w-full object-cover" />}
+          <div className="relative aspect-square overflow-hidden rounded-md bg-secondary">
+            {product.images[0] && (
+              <StoreImage src={product.images[0].url} alt={product.name} sizes="(min-width: 768px) 50vw, 100vw" priority className="object-cover" />
+            )}
           </div>
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
               {product.images.slice(1).map((img) => (
-                <div key={img.id} className="aspect-square overflow-hidden rounded-sm bg-secondary">
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
+                <div key={img.id} className="relative aspect-square overflow-hidden rounded-sm bg-secondary">
+                  <StoreImage src={img.url} alt="" sizes="(min-width: 768px) 12vw, 25vw" className="object-cover" />
                 </div>
               ))}
             </div>

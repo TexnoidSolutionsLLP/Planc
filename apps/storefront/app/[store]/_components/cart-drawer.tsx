@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { X, Minus, Plus } from "lucide-react";
 import { Button } from "@sellly/ui";
+import { StoreImage } from "./store-image";
 import { useCart, lineKey } from "@/lib/cart-context";
 
 export function CartDrawer({ storeSlug }: { storeSlug: string }) {
@@ -30,8 +31,8 @@ export function CartDrawer({ storeSlug }: { storeSlug: string }) {
                 const key = lineKey(l);
                 return (
                   <li key={key} className="flex gap-3">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-secondary">
-                      {l.imageUrl && <img src={l.imageUrl} alt="" className="h-full w-full object-cover" />}
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-secondary">
+                      {l.imageUrl && <StoreImage src={l.imageUrl} alt="" sizes="64px" className="object-cover" />}
                     </div>
                     <div className="flex-1">
                       <p className="text-small font-medium text-primary">{l.name}</p>

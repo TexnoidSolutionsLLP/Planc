@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Minus, Plus, X } from "lucide-react";
 import { Button, EmptyState, buttonVariants } from "@sellly/ui";
 import { useCart, lineKey } from "@/lib/cart-context";
+import { StoreImage } from "../_components/store-image";
 
 export default function CartPage() {
   const { store } = useParams<{ store: string }>();
@@ -34,8 +35,8 @@ export default function CartPage() {
           const key = lineKey(l);
           return (
             <li key={key} className="flex items-center gap-4 py-4">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-sm bg-secondary">
-                {l.imageUrl && <img src={l.imageUrl} alt="" className="h-full w-full object-cover" />}
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm bg-secondary">
+                {l.imageUrl && <StoreImage src={l.imageUrl} alt="" sizes="80px" className="object-cover" />}
               </div>
               <div className="flex-1">
                 <p className="font-medium text-primary">{l.name}</p>

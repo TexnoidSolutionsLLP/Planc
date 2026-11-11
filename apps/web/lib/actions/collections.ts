@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { redirect } from "next/navigation";
 import { getTenantDb, writeAuditLog } from "@sellly/database";
 import { requireStore } from "@/lib/session";
@@ -34,5 +35,6 @@ export async function createCollectionAction(storeSlug: string, _prev: FormState
   await writeAuditLog({ storeId: store.id, userId, action: "collection.created", entity: "collection", entityId: collection.id });
 
   revalidatePath(`/${storeSlug}/collections`);
+  await refreshStorefront(storeSlug);
   redirect(`/${storeSlug}/collections`);
 }

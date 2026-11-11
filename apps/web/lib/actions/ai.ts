@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { refreshStorefront } from "@sellly/domains";
 import { prisma, writeAuditLog } from "@sellly/database";
 import { generateProductCopy, generateStoreBuilderDraft, isAiConfigured, type StoreBuilderResult } from "@sellly/ai";
 import { checkRateLimit } from "@sellly/rate-limit";
@@ -88,4 +89,5 @@ export async function applyStoreBuilderDraftAction(storeSlug: string, draft: Sto
   await writeAuditLog({ storeId: store.id, userId, action: "ai.store_builder_applied" });
   revalidatePath(`/${storeSlug}/online-store`);
   revalidatePath(`/${storeSlug}/collections`);
+  await refreshStorefront(storeSlug);
 }

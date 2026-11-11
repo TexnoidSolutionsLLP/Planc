@@ -3,6 +3,9 @@ import { trackEvent } from "@sellly/analytics";
 import { getPublishedStore } from "@/lib/store";
 import { CheckoutForm } from "./_components/checkout-form";
 
+// Specific to one shopper and order: always rendered fresh, never cached.
+export const dynamic = "force-dynamic";
+
 export default async function CheckoutPage({ params }: { params: { store: string } }) {
   const store = await getPublishedStore(params.store);
   const settings = await prisma.storeSettings.findUnique({ where: { storeId: store.id } });
